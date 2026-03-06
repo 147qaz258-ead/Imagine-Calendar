@@ -11,6 +11,9 @@ import type {
   RefreshTokenRequest,
   RefreshTokenResponse,
   MeResponse,
+  PasswordLoginRequest,
+  RegisterRequest,
+  RegisterResponse,
 } from '../types'
 
 export const authApi = {
@@ -26,6 +29,20 @@ export const authApi = {
    */
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     return apiClient.post('/auth/login', data)
+  },
+
+  /**
+   * 密码登录
+   */
+  loginWithPassword: async (data: PasswordLoginRequest): Promise<LoginResponse> => {
+    return apiClient.post('/auth/login-password', data)
+  },
+
+  /**
+   * 密码注册
+   */
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
+    return apiClient.post('/auth/register', data)
   },
 
   /**

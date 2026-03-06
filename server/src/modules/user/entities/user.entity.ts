@@ -7,9 +7,9 @@ import {
   OneToOne,
   OneToMany,
   Index,
-} from 'typeorm';
-import { UserProfile } from './user-profile.entity';
-import { Notification } from '../../notification/entities/notification.entity';
+} from 'typeorm'
+import { UserProfile } from './user-profile.entity'
+import { Notification } from '../../notification/entities/notification.entity'
 
 /**
  * 用户状态枚举
@@ -27,53 +27,56 @@ export enum UserStatus {
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Index()
   @Column({ type: 'varchar', length: 11, unique: true })
-  phone: string;
+  phone: string
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  nickname: string;
+  nickname: string
 
   @Column({ type: 'varchar', length: 500, nullable: true, name: 'avatar_url' })
-  avatar: string;
+  avatar: string
+
+  @Column({ type: 'varchar', length: 255, nullable: true, select: false })
+  password: string
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  school: string;
+  school: string
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  major: string;
+  major: string
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  grade: string;
+  grade: string
 
   @Column({ type: 'varchar', length: 50, nullable: true, name: 'student_id' })
-  studentId: string;
+  studentId: string
 
   @Column({ type: 'int', nullable: true, name: 'graduation_year' })
-  graduationYear: number;
+  graduationYear: number
 
   @Column({
     type: 'enum',
     enum: UserStatus,
     default: UserStatus.ACTIVE,
   })
-  status: UserStatus;
+  status: UserStatus
 
   @Column({ type: 'timestamptz', nullable: true, name: 'last_login_at' })
-  lastLoginAt: Date;
+  lastLoginAt: Date
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt: Date
 
   // 关联关系
   @OneToOne(() => UserProfile, (profile) => profile.user, { cascade: true })
-  profile: UserProfile;
+  profile: UserProfile
 
   @OneToMany(() => Notification, (notification) => notification.user)
-  notifications: Notification[];
+  notifications: Notification[]
 }

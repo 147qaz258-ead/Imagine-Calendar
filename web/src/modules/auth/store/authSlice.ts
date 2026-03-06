@@ -2,7 +2,7 @@
  * 认证状态管理
  */
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import type { AuthState, User, LoginRequest, SendCodeRequest } from '../types'
+import type { AuthState, User, LoginRequest, SendCodeRequest, PasswordLoginRequest, RegisterRequest } from '../types'
 import { authApi } from '../services/authApi'
 
 // 初始状态
@@ -45,6 +45,40 @@ export const login = createAsyncThunk(
     } catch (error: unknown) {
       const err = error as { message?: string }
       return rejectWithValue(err.message || '登录失败')
+    }
+  }
+)
+
+// 密码登录
+export const loginWithPassword = createAsyncThunk(
+  'auth/loginWithPassword',
+  async (data: PasswordLoginRequest, { rejectWithValue }) => {
+    try {
+      const response = await authApi.loginWithPassword(data)
+      if (!response.success) {
+        return rejectWithValue('登录失败')
+      }
+      return response
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return rejectWithValue(err.message || '登录失败')
+    }
+  }
+)
+
+// 注册
+export const register = createAsyncThunk(
+  'auth/register',
+  async (data: RegisterRequest, { rejectWithValue }) => {
+    try {
+      const response = await authApi.register(data)
+      if (!response.success) {
+        return rejectWithValue('注册失败')
+      }
+      return response
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return rejectWithValue(err.message || '注册失败')
     }
   }
 )
@@ -139,6 +173,44 @@ const authSlice = createSlice({
         localStorage.setItem('token', action.payload.data.token)
       })
       .addCase(login.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+
+    // 密码登录
+    builder
+      .addCase(loginWithPassword.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(loginWithPassword.fulfilled, (state, action) => {
+        state.loading = false
+        state.user = action.payload.data.user
+        state.token = action.payload.data.token
+        state.isAuthenticated = true
+        state.isNewUser = false
+        localStorage.setItem('token', action.payload.data.token)
+      })
+      .addCase(loginWithPassword.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+
+    // 注册
+    builder
+      .addCase(register.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.loading = false
+        state.user = action.payload.data.user
+        state.token = action.payload.data.token
+        state.isAuthenticated = true
+        state.isNewUser = true
+        localStorage.setItem('token', action.payload.data.token)
+      })
+      .addCase(register.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

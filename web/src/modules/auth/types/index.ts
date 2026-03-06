@@ -105,3 +105,26 @@ export interface AuthState {
   loading: boolean
   error: string | null
 }
+
+// 密码登录请求
+export interface PasswordLoginRequest {
+  phone: string
+  password: string
+}
+
+// 注册请求
+export interface RegisterRequest {
+  phone: string
+  code: string
+  password: string
+}
+
+// 注册响应
+export interface RegisterResponse {
+  success: boolean
+  data: {
+    user: User
+    token: string
+    expiresIn: number
+  }
+}

@@ -7,11 +7,11 @@ import {
   Request,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { SendCodeDto, LoginDto, RefreshTokenDto } from './dto';
-import { Public } from '../../common/decorators/public.decorator';
+} from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger'
+import { AuthService } from './auth.service'
+import { SendCodeDto, LoginDto, RefreshTokenDto, RegisterDto, PasswordLoginDto } from './dto'
+import { Public } from '../../common/decorators/public.decorator'
 
 /**
  * 认证控制器
@@ -62,12 +62,12 @@ export class AuthController {
     },
   })
   async sendCode(@Body() dto: SendCodeDto) {
-    const result = await this.authService.sendCode(dto);
+    const result = await this.authService.sendCode(dto)
     return {
       success: true,
       message: result.message,
       data: { expiresIn: result.expiresIn },
-    };
+    }
   }
 
   /**
@@ -111,7 +111,57 @@ export class AuthController {
     },
   })
   async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+    return this.authService.login(dto)
+  }
+
+  /**
+   * 密码注册
+   * POST /api/auth/register
+   */
+  @Public()
+  @Post('register')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '密码注册' })
+  @ApiResponse({
+    status: 200,
+    description: '注册成功',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          user: { id: 'uuid', phone: '13800138000', status: 'active' },
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          expiresIn: 604800,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: '验证码错误或手机号已注册',
+  })
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto)
+  }
+
+  /**
+   * 密码登录
+   * POST /api/auth/login-password
+   */
+  @Public()
+  @Post('login-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '密码登录' })
+  @ApiResponse({
+    status: 200,
+    description: '登录成功',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '密码错误或用户不存在',
+  })
+  async loginWithPassword(@Body() dto: PasswordLoginDto) {
+    return this.authService.loginWithPassword(dto)
   }
 
   /**
@@ -146,7 +196,7 @@ export class AuthController {
     },
   })
   async refreshToken(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshToken(dto);
+    return this.authService.refreshToken(dto)
   }
 
   /**
@@ -184,11 +234,11 @@ export class AuthController {
     },
   })
   async getCurrentUser(@Request() req: any) {
-    const user = await this.authService.getCurrentUser(req.user.sub);
+    const user = await this.authService.getCurrentUser(req.user.sub)
     return {
       success: true,
       data: user,
-    };
+    }
   }
 
   /**
@@ -207,10 +257,10 @@ export class AuthController {
     },
   })
   async logout(@Request() req: any) {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(' ')[1]
     if (token) {
-      await this.authService.logout(token);
+      await this.authService.logout(token)
     }
-    return { success: true };
+    return { success: true }
   }
 }
