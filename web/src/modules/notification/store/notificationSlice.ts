@@ -19,7 +19,7 @@ const initialState: NotificationState = {
 // 获取通知列表
 export const fetchNotifications = createAsyncThunk(
   'notification/fetchNotifications',
-  async (query?: GetNotificationsQuery, { rejectWithValue }) => {
+  async (query: GetNotificationsQuery | undefined, { rejectWithValue }) => {
     try {
       const response = await notificationApi.getNotifications(query)
       if (!response.success) {
