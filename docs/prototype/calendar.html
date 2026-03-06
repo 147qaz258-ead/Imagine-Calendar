@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畅选日历 - 日历主页</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* 日历页特定样式 */
+    .calendar-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px;
+      padding-top: 60px;
+    }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .calendar-nav-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.25rem;
+    }
+
+    .calendar-nav-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .calendar-month-year {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      padding: 8px 0;
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .calendar-body {
+      background: white;
+      margin: -8px 16px 0;
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #e5e7eb;
+    }
+
+    .calendar-day {
+      background: white;
+      min-height: 70px;
+      padding: 4px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .calendar-day:hover {
+      background: #f9fafb;
+    }
+
+    .calendar-day.other-month {
+      background: #f9fafb;
+    }
+
+    .calendar-day.other-month .day-number {
+      color: #9ca3af;
+    }
+
+    .calendar-day.today {
+      background: #eff6ff;
+    }
+
+    .calendar-day.today .day-number {
+      background: #2563eb;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calendar-day.selected {
+      background: #dbeafe;
+    }
+
+    .day-number {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 2px;
+    }
+
+    .day-events {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .day-event-dot {
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .day-event-label {
+      font-size: 0.625rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 1px 4px;
+      border-radius: 2px;
+      color: white;
+    }
+
+    /* 事件详情面板 */
+    .event-panel {
+      background: white;
+      border-radius: 16px;
+      margin: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
+    .event-panel-header {
+      padding: 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .event-panel-date {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .event-panel-count {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .event-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .event-item {
+      display: flex;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+    }
+
+    .event-item:hover {
+      background: #f9fafb;
+    }
+
+    .event-color {
+      width: 4px;
+      border-radius: 2px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .event-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .event-company {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .event-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .event-tag {
+      font-size: 0.625rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .event-deadline {
+      font-size: 0.75rem;
+      color: #ef4444;
+      font-weight: 500;
+    }
+
+    /* 颜色图例 */
+    .legend-scroll {
+      padding: 8px 16px;
+      background: #f9fafb;
+      overflow-x: auto;
+    }
+
+    .legend-items {
+      display: flex;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    /* 空状态 */
+    .empty-events {
+      text-align: center;
+      padding: 32px;
+      color: #9ca3af;
+    }
+
+    /* 快捷操作栏 */
+    .quick-actions {
+      position: fixed;
+      bottom: 70px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quick-action-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+    }
+
+    .quick-action-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .quick-action-btn.secondary {
+      background: white;
+      color: #2563eb;
+    }
+
+    /* 原型控件 */
+    .prototype-controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 1000;
+    }
+
+    .prototype-controls button {
+      display: block;
+      width: 100%;
+      margin: 4px 0;
+      padding: 6px 12px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- 原型状态切换 -->
+  <div class="prototype-controls">
+    <div style="font-weight:600;margin-bottom:8px;">状态切换</div>
+    <button onclick="setCalendarState('normal')">正常状态</button>
+    <button onclick="setCalendarState('empty')">空状态</button>
+    <button onclick="setCalendarState('loading')">加载中</button>
+  </div>
+
+  <!-- 日历头部 -->
+  <div class="calendar-header">
+    <div class="calendar-nav">
+      <button class="calendar-nav-btn" onclick="prevMonth()">&#8249;</button>
+      <div class="calendar-month-year" id="monthYear">2024年3月</div>
+      <button class="calendar-nav-btn" onclick="nextMonth()">&#8250;</button>
+    </div>
+    <div class="calendar-weekdays">
+      <div>日</div>
+      <div>一</div>
+      <div>二</div>
+      <div>三</div>
+      <div>四</div>
+      <div>五</div>
+      <div>六</div>
+    </div>
+  </div>
+
+  <!-- 日历主体 -->
+  <div class="calendar-body">
+    <div class="calendar-days" id="calendarDays">
+      <!-- JavaScript 动态生成 -->
+    </div>
+  </div>
+
+  <!-- 颜色图例 -->
+  <div class="legend-scroll">
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#6b7280;"></div>
+        <span>国企</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#8b5cf6;"></div>
+        <span>外企</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#f59e0b;"></div>
+        <span>民企</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#10b981;"></div>
+        <span>创业公司</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#ef4444;"></div>
+        <span>政府机关</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#06b6d4;"></div>
+        <span>NGO</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 事件详情面板 -->
+  <div class="event-panel" id="eventPanel">
+    <div class="event-panel-header">
+      <div class="event-panel-date" id="selectedDate">3月15日 星期五</div>
+      <div class="event-panel-count" id="eventCount">共3个招聘截止</div>
+    </div>
+    <div class="event-list" id="eventList">
+      <!-- JavaScript 动态生成 -->
+    </div>
+  </div>
+
+  <!-- 快捷操作 -->
+  <div class="quick-actions">
+    <button class="quick-action-btn secondary" onclick="window.location.href='filter.html'" title="筛选">🔍</button>
+    <button class="quick-action-btn" onclick="showAddEvent()" title="添加">+</button>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-content">
+      <a href="calendar.html" class="bottom-nav-item active">
+        <span class="bottom-nav-icon">📅</span>
+        <span>日历</span>
+      </a>
+      <a href="roundtable.html" class="bottom-nav-item">
+        <span class="bottom-nav-icon">💬</span>
+        <span>圆桌</span>
+      </a>
+      <a href="cognitive-map.html" class="bottom-nav-item">
+        <span class="bottom-nav-icon">🗺️</span>
+        <span>认知图</span>
+      </a>
+      <a href="#" class="bottom-nav-item">
+        <span class="bottom-nav-icon">👤</span>
+        <span>我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    // 模拟数据
+    const mockEvents = {
+      '2024-3-1': [
+        { id: 1, title: '中国银行春招', company: '中国银行', type: 'soe', deadline: '今日截止', tags: ['金融', '全国'] }
+      ],
+      '2024-3-5': [
+        { id: 2, title: '腾讯产品经理', company: '腾讯', type: 'private', deadline: '剩余3天', tags: ['互联网', '深圳'] },
+        { id: 3, title: '宝洁管培生', company: '宝洁', type: 'foreign', deadline: '剩余5天', tags: ['快消', '广州'] }
+      ],
+      '2024-3-10': [
+        { id: 4, title: '字节跳动开发岗', company: '字节跳动', type: 'private', deadline: '今日截止', tags: ['互联网', '北京'] }
+      ],
+      '2024-3-15': [
+        { id: 5, title: '国家电网招聘', company: '国家电网', type: 'soe', deadline: '剩余7天', tags: ['能源', '全国'] },
+        { id: 6, title: '微软软件开发', company: '微软', type: 'foreign', deadline: '剩余10天', tags: ['科技', '上海'] },
+        { id: 7, title: '蚂蚁集团产品', company: '蚂蚁集团', type: 'private', deadline: '剩余5天', tags: ['金融科技', '杭州'] }
+      ],
+      '2024-3-20': [
+        { id: 8, title: '公务员考试报名', company: '国家公务员局', type: 'gov', deadline: '今日截止', tags: ['政府', '全国'] }
+      ],
+      '2024-3-25': [
+        { id: 9, title: '小米工程师', company: '小米', type: 'private', deadline: '剩余3天', tags: ['科技', '北京'] },
+        { id: 10, title: '绿色和平实习生', company: '绿色和平', type: 'ngo', deadline: '剩余7天', tags: ['环保', '北京'] }
+      ]
+    };
+
+    const typeColors = {
+      soe: '#6b7280',
+      foreign: '#8b5cf6',
+      private: '#f59e0b',
+      startup: '#10b981',
+      gov: '#ef4444',
+      ngo: '#06b6d4'
+    };
+
+    const typeNames = {
+      soe: '国企',
+      foreign: '外企',
+      private: '民企',
+      startup: '创业公司',
+      gov: '政府机关',
+      ngo: 'NGO'
+    };
+
+    let currentDate = new Date(2024, 2, 15); // 2024年3月15日
+    let selectedDay = 15;
+
+    // 初始化日历
+    function initCalendar() {
+      renderCalendar();
+      renderEvents(selectedDay);
+    }
+
+    // 渲染日历
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      document.getElementById('monthYear').textContent = `${year}年${month + 1}月`;
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDayOfWeek = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+
+      const container = document.getElementById('calendarDays');
+      container.innerHTML = '';
+
+      // 上月日期
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+      for (let i = startDayOfWeek - 1; i >= 0; i--) {
+        const day = prevMonthLastDay - i;
+        container.appendChild(createDayElement(day, true, false));
+      }
+
+      // 本月日期
+      const today = new Date();
+      for (let day = 1; day <= totalDays; day++) {
+        const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+        const isSelected = day === selectedDay;
+        container.appendChild(createDayElement(day, false, isToday, isSelected));
+      }
+
+      // 下月日期
+      const remainingDays = 42 - (startDayOfWeek + totalDays);
+      for (let day = 1; day <= remainingDays; day++) {
+        container.appendChild(createDayElement(day, true, false));
+      }
+    }
+
+    // 创建日期元素
+    function createDayElement(day, isOtherMonth, isToday, isSelected = false) {
+      const div = document.createElement('div');
+      div.className = 'calendar-day';
+      if (isOtherMonth) div.classList.add('other-month');
+      if (isToday) div.classList.add('today');
+      if (isSelected) div.classList.add('selected');
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const key = `${year}-${month + 1}-${day}`;
+      const events = mockEvents[key] || [];
+
+      div.innerHTML = `
+        <div class="day-number">${day}</div>
+        <div class="day-events">
+          ${events.slice(0, 3).map(e => `<div class="day-event-dot" style="background:${typeColors[e.type]}"></div>`).join('')}
+        </div>
+      `;
+
+      if (!isOtherMonth) {
+        div.onclick = () => selectDay(day);
+      }
+
+      return div;
+    }
+
+    // 选择日期
+    function selectDay(day) {
+      selectedDay = day;
+      renderCalendar();
+      renderEvents(day);
+    }
+
+    // 渲染事件列表
+    function renderEvents(day) {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const key = `${year}-${month + 1}-${day}`;
+      const events = mockEvents[key] || [];
+
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      const date = new Date(year, month, day);
+      document.getElementById('selectedDate').textContent = `${month + 1}月${day}日 星期${weekdays[date.getDay()]}`;
+      document.getElementById('eventCount').textContent = `共${events.length}个招聘信息`;
+
+      const container = document.getElementById('eventList');
+
+      if (events.length === 0) {
+        container.innerHTML = `
+          <div class="empty-events">
+            <div style="font-size: 2rem; margin-bottom: 8px;">📭</div>
+            <div>暂无招聘信息</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = events.map(event => `
+        <div class="event-item" onclick="viewEvent(${event.id})">
+          <div class="event-color" style="background:${typeColors[event.type]}"></div>
+          <div class="event-info">
+            <div class="event-title">${event.title}</div>
+            <div class="event-company">${event.company} · ${typeNames[event.type]}</div>
+            <div class="event-meta">
+              ${event.tags.map(t => `<span class="event-tag">${t}</span>`).join('')}
+              <span class="event-deadline">${event.deadline}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 上月
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    // 下月
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    // 查看事件详情
+    function viewEvent(id) {
+      alert(`查看招聘详情 #${id}\n\n原型说明：\n- 跳转到招聘详情页\n- 显示岗位要求、薪资范围\n- 提供一键投递入口`);
+    }
+
+    // 添加事件
+    function showAddEvent() {
+      alert('添加自定义提醒\n\n原型说明：\n- 可添加个人日程\n- 设置提醒时间\n- 关联招聘信息');
+    }
+
+    // 原型状态切换
+    function setCalendarState(state) {
+      const panel = document.getElementById('eventPanel');
+      switch(state) {
+        case 'empty':
+          selectedDay = 1;
+          renderCalendar();
+          renderEvents(1);
+          break;
+        case 'loading':
+          document.getElementById('eventList').innerHTML = `
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+          `;
+          break;
+        case 'normal':
+          selectedDay = 15;
+          renderCalendar();
+          renderEvents(15);
+          break;
+      }
+    }
+
+    // 初始化
+    initCalendar();
+  </script>
+</body>
+</html>

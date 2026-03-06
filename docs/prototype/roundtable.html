@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畅选日历 - 圆桌讨论</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* 圆桌页特定样式 */
+    .roundtable-header {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 60px 16px 24px;
+      text-align: center;
+    }
+
+    .roundtable-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .roundtable-subtitle {
+      font-size: 0.875rem;
+      opacity: 0.9;
+    }
+
+    /* 匹配状态卡片 */
+    .match-card {
+      background: white;
+      margin: -16px 16px 16px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
+    .match-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .match-status-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .status-badge.matched {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .status-badge.matching {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .match-countdown {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .match-progress {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .match-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #059669);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .match-action {
+      text-align: center;
+    }
+
+    /* 小组成员 */
+    .members-section {
+      padding: 0 16px 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-title h3 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .section-more {
+      font-size: 0.875rem;
+      color: #2563eb;
+    }
+
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .member-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .member-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    .member-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .member-info {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .member-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-size: 0.625rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .member-card.self {
+      border: 2px solid #2563eb;
+    }
+
+    .member-card.self .member-tag {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    /* 会议指南 */
+    .guide-section {
+      padding: 0 16px 16px;
+    }
+
+    .guide-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .guide-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .guide-item:last-child {
+      border-bottom: none;
+    }
+
+    .guide-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-right: 12px;
+    }
+
+    .guide-content {
+      flex: 1;
+    }
+
+    .guide-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .guide-desc {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* 问题清单 */
+    .questions-section {
+      padding: 0 16px 100px;
+    }
+
+    .questions-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .question-item {
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .question-item:last-child {
+      border-bottom: none;
+    }
+
+    .question-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+
+    .question-header:hover {
+      background: #f9fafb;
+    }
+
+    .question-number {
+      width: 24px;
+      height: 24px;
+      background: #f3f4f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #6b7280;
+      margin-right: 12px;
+    }
+
+    .question-text {
+      flex: 1;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+
+    .question-toggle {
+      color: #9ca3af;
+      transition: transform 0.2s ease;
+    }
+
+    .question-item.expanded .question-toggle {
+      transform: rotate(180deg);
+    }
+
+    .question-detail {
+      padding: 0 16px 14px 52px;
+      font-size: 0.8125rem;
+      color: #6b7280;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .question-item.expanded .question-detail {
+      display: block;
+    }
+
+    /* 原型控件 */
+    .prototype-controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 1000;
+    }
+
+    .prototype-controls button {
+      display: block;
+      width: 100%;
+      margin: 4px 0;
+      padding: 6px 12px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- 原型状态切换 -->
+  <div class="prototype-controls">
+    <div style="font-weight:600;margin-bottom:8px;">状态切换</div>
+    <button onclick="setMatchState('matched')">已匹配</button>
+    <button onclick="setMatchState('matching')">匹配中</button>
+    <button onclick="setMatchState('empty')">未报名</button>
+  </div>
+
+  <!-- 头部 -->
+  <div class="roundtable-header">
+    <h1 class="roundtable-title">圆桌讨论</h1>
+    <p class="roundtable-subtitle">与同路人一起，打破信息差</p>
+  </div>
+
+  <!-- 匹配状态卡片 -->
+  <div class="match-card" id="matchCard">
+    <div class="match-status">
+      <div class="match-status-text">
+        <span class="status-badge matched" id="statusBadge">已匹配</span>
+        <span id="matchText">已找到6人小组</span>
+      </div>
+      <div class="match-countdown" id="countdownText">讨论时间：3月20日 20:00</div>
+    </div>
+    <div class="match-progress">
+      <div class="match-progress-bar" id="progressBar" style="width: 100%;"></div>
+    </div>
+    <div class="match-action" id="matchAction">
+      <button class="btn btn-primary" onclick="joinMeeting()">进入讨论室</button>
+    </div>
+  </div>
+
+  <!-- 小组成员 -->
+  <div class="members-section">
+    <div class="section-title">
+      <h3>小组成员</h3>
+      <span class="section-more" onclick="viewAllMembers()">查看全部</span>
+    </div>
+    <div class="members-grid" id="membersGrid">
+      <!-- JavaScript 动态生成 -->
+    </div>
+  </div>
+
+  <!-- 会议指南 -->
+  <div class="guide-section">
+    <div class="section-title">
+      <h3>会议指南</h3>
+    </div>
+    <div class="guide-card">
+      <div class="guide-item">
+        <div class="guide-icon">📋</div>
+        <div class="guide-content">
+          <div class="guide-title">提前准备</div>
+          <div class="guide-desc">花10分钟浏览核心问题清单</div>
+        </div>
+      </div>
+      <div class="guide-item">
+        <div class="guide-icon">🎯</div>
+        <div class="guide-content">
+          <div class="guide-title">讨论目标</div>
+          <div class="guide-desc">每人分享1个职业困惑，共同讨论</div>
+        </div>
+      </div>
+      <div class="guide-item">
+        <div class="guide-icon">⏱️</div>
+        <div class="guide-content">
+          <div class="guide-title">时间安排</div>
+          <div class="guide-desc">每人3分钟自我介绍，讨论约90分钟</div>
+        </div>
+      </div>
+      <div class="guide-item">
+        <div class="guide-icon">🔒</div>
+        <div class="guide-content">
+          <div class="guide-title">隐私保护</div>
+          <div class="guide-desc">讨论内容仅组内可见，请放心发言</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 20个核心问题清单 -->
+  <div class="questions-section">
+    <div class="section-title">
+      <h3>核心问题清单</h3>
+      <span style="font-size:0.75rem;color:#6b7280;">点击展开详情</span>
+    </div>
+    <div class="questions-card" id="questionsCard">
+      <!-- JavaScript 动态生成 -->
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-content">
+      <a href="calendar.html" class="bottom-nav-item">
+        <span class="bottom-nav-icon">📅</span>
+        <span>日历</span>
+      </a>
+      <a href="roundtable.html" class="bottom-nav-item active">
+        <span class="bottom-nav-icon">💬</span>
+        <span>圆桌</span>
+      </a>
+      <a href="cognitive-map.html" class="bottom-nav-item">
+        <span class="bottom-nav-icon">🗺️</span>
+        <span>认知图</span>
+      </a>
+      <a href="#" class="bottom-nav-item">
+        <span class="bottom-nav-icon">👤</span>
+        <span>我的</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    // 模拟数据 - 小组成员
+    const mockMembers = [
+      { id: 1, name: '我', school: 'XX大学', major: '计算机', tag: '技术方向', isSelf: true },
+      { id: 2, name: '张同学', school: 'XX理工', major: '软件工程', tag: '国企偏好' },
+      { id: 3, name: '李同学', school: 'XX师范', major: '教育学', tag: '考公准备' },
+      { id: 4, name: '王同学', school: 'XX财经', major: '金融学', tag: '银行方向' },
+      { id: 5, name: '赵同学', school: 'XX工业', major: '机械工程', tag: '制造业' },
+      { id: 6, name: '刘同学', school: 'XX艺术', major: '视觉设计', tag: '互联网' }
+    ];
+
+    // 20个核心问题
+    const coreQuestions = [
+      {
+        text: '你为什么想进入这个行业？',
+        detail: '是因为兴趣、薪资、稳定还是从众？真正的动机决定了你能走多远。'
+      },
+      {
+        text: '你了解这个行业的工作日常吗？',
+        detail: '很多人只看到了行业光鲜的一面，却不知道加班、出差、KPI压力是常态。'
+      },
+      {
+        text: '你接受的最差情况是什么？',
+        detail: '如果三年后你还在基层，薪资涨幅不如预期，你能接受吗？'
+      },
+      {
+        text: '你的信息来源是什么？',
+        detail: '学校宣讲会、HR的话、网上帖子，还是真实从业者的经验？'
+      },
+      {
+        text: '你有多少备选方案？',
+        detail: '如果第一志愿失败，你有Plan B、Plan C吗？它们真的可行吗？'
+      },
+      {
+        text: '你愿意为这个目标付出什么？',
+        detail: '时间、金钱、健康、社交...任何选择都有代价。'
+      },
+      {
+        text: '这个选择会影响你的人生规划吗？',
+        detail: '买房、结婚、生子、父母养老...职业选择会深刻影响这些节点。'
+      },
+      {
+        text: '你了解目标公司的真实情况吗？',
+        detail: '企业文化、晋升机制、离职率...这些HR不会告诉你。'
+      },
+      {
+        text: '你的竞争力在哪里？',
+        detail: '相比985/211学生，你的差异化优势是什么？'
+      },
+      {
+        text: '五年后你想成为什么样的人？',
+        detail: '这个职业路径能带你到达那里吗？'
+      },
+      {
+        text: '你接受的工作城市限制？',
+        detail: '一线城市高房价vs二三线城市发展空间，你怎么选？'
+      },
+      {
+        text: '加班强度你能接受到什么程度？',
+        detail: '996、大小周、弹性工作...不同选择意味着不同的生活方式。'
+      },
+      {
+        text: '你对薪资的预期是什么？',
+        detail: '起薪重要还是成长空间重要？三年后的薪资水平呢？'
+      },
+      {
+        text: '你考虑过体制内吗？',
+        detail: '公务员、事业编、国企，稳定的代价是什么？'
+      },
+      {
+        text: '你了解不同城市的落户政策吗？',
+        detail: '户口、社保、子女教育...这些因素会影响你的长期选择。'
+      },
+      {
+        text: '你愿意继续深造吗？',
+        detail: '考研、留学、在职研究生...学历通胀时代，你如何选择？'
+      },
+      {
+        text: '你的家庭能给你什么支持？',
+        detail: '经济支持、人脉资源、还是只能靠你自己？'
+      },
+      {
+        text: '你害怕失败吗？',
+        detail: '如果这条路走不通，你有勇气重新开始吗？'
+      },
+      {
+        text: '你觉得"好工作"的标准是什么？',
+        detail: '钱多、事少、离家近？还是成长快、平台大、有前景？'
+      },
+      {
+        text: '十年后，你会后悔今天的选择吗？',
+        detail: '站在十年后回望，你觉得这个选择是对的。'
+      }
+    ];
+
+    // 初始化页面
+    function initRoundtable() {
+      renderMembers();
+      renderQuestions();
+    }
+
+    // 渲染小组成员
+    function renderMembers() {
+      const container = document.getElementById('membersGrid');
+      container.innerHTML = mockMembers.map(member => `
+        <div class="member-card ${member.isSelf ? 'self' : ''}">
+          <div class="member-avatar">${member.name.charAt(0)}</div>
+          <div class="member-name">${member.name}</div>
+          <div class="member-info">${member.school}</div>
+          <div class="member-tag">${member.tag}</div>
+        </div>
+      `).join('');
+    }
+
+    // 渲染问题清单
+    function renderQuestions() {
+      const container = document.getElementById('questionsCard');
+      container.innerHTML = coreQuestions.map((q, index) => `
+        <div class="question-item" id="q${index}">
+          <div class="question-header" onclick="toggleQuestion(${index})">
+            <span class="question-number">${index + 1}</span>
+            <span class="question-text">${q.text}</span>
+            <span class="question-toggle">▼</span>
+          </div>
+          <div class="question-detail">${q.detail}</div>
+        </div>
+      `).join('');
+    }
+
+    // 切换问题展开
+    function toggleQuestion(index) {
+      const item = document.getElementById(`q${index}`);
+      item.classList.toggle('expanded');
+    }
+
+    // 进入讨论室
+    function joinMeeting() {
+      alert('进入线上讨论室\n\n原型说明：\n- 语音/视频会议功能\n- 屏幕共享\n- 实时聊天\n- 会议记录自动保存');
+    }
+
+    // 查看全部成员
+    function viewAllMembers() {
+      alert('查看全部成员信息\n\n原型说明：\n- 查看成员详细资料\n- 匿名聊天\n- 查看共同关注的企业');
+    }
+
+    // 设置匹配状态
+    function setMatchState(state) {
+      const badge = document.getElementById('statusBadge');
+      const matchText = document.getElementById('matchText');
+      const countdown = document.getElementById('countdownText');
+      const progressBar = document.getElementById('progressBar');
+      const action = document.getElementById('matchAction');
+      const matchCard = document.getElementById('matchCard');
+
+      switch(state) {
+        case 'matched':
+          badge.textContent = '已匹配';
+          badge.className = 'status-badge matched';
+          matchText.textContent = '已找到6人小组';
+          countdown.textContent = '讨论时间：3月20日 20:00';
+          progressBar.style.width = '100%';
+          action.innerHTML = '<button class="btn btn-primary" onclick="joinMeeting()">进入讨论室</button>';
+          renderMembers();
+          break;
+        case 'matching':
+          badge.textContent = '匹配中';
+          badge.className = 'status-badge matching';
+          matchText.textContent = '正在为你匹配合适的小组...';
+          countdown.textContent = '预计等待时间：2-3天';
+          progressBar.style.width = '60%';
+          action.innerHTML = '<button class="btn btn-secondary" disabled>等待匹配</button>';
+          document.getElementById('membersGrid').innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:20px;color:#6b7280;">
+              <div class="spinner" style="margin:0 auto 12px;"></div>
+              <div>正在匹配志同道合的伙伴...</div>
+            </div>
+          `;
+          break;
+        case 'empty':
+          badge.textContent = '未报名';
+          badge.className = 'status-badge';
+          badge.style.background = '#f3f4f6';
+          badge.style.color = '#6b7280';
+          matchText.textContent = '报名参加圆桌讨论';
+          countdown.textContent = '每周六晚8点开聊';
+          progressBar.style.width = '0%';
+          action.innerHTML = '<button class="btn btn-primary" onclick="signup()">立即报名</button>';
+          document.getElementById('membersGrid').innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:20px;color:#9ca3af;">
+              <div style="font-size:2rem;margin-bottom:8px;">🎭</div>
+              <div>报名后查看小组成员</div>
+            </div>
+          `;
+          break;
+      }
+    }
+
+    // 报名
+    function signup() {
+      alert('报名圆桌讨论\n\n原型说明：\n- 选择方便的讨论时间\n- 填写职业困惑标签\n- 匹配相似背景的同学');
+      setMatchState('matching');
+    }
+
+    // 初始化
+    initRoundtable();
+  </script>
+</body>
+</html>

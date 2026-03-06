@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认知边界图</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .cognitive-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .cognitive-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .cognitive-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .radar-container {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .radar-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        #radarChart {
+            width: 100%;
+            height: 350px;
+        }
+
+        .legend-section {
+            padding: 20px;
+            background: white;
+            margin: 0 20px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .legend-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .dimension-section {
+            padding: 20px;
+            background: white;
+            margin: 0 20px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dimension-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .dimension-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .dimension-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .dimension-value {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #666;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .comparison-section {
+            padding: 20px;
+            background: white;
+            margin: 0 20px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .comparison-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .comparison-tab {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .comparison-tab.active {
+            background: #f093fb;
+            color: white;
+        }
+
+        .insight-card {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .insight-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 5px;
+        }
+
+        .insight-text {
+            font-size: 13px;
+            color: #78350f;
+            line-height: 1.5;
+        }
+
+        .action-section {
+            padding: 20px;
+            background: white;
+            margin: 0 20px 100px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            text-align: center;
+            text-decoration: none;
+            color: #9ca3af;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #f093fb;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-text {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cognitive-header">
+        <div class="cognitive-title">认知边界图</div>
+        <div class="cognitive-subtitle">发现你的职业认知盲区</div>
+    </div>
+
+    <div class="radar-container">
+        <div class="radar-title">职业认知雷达图</div>
+        <canvas id="radarChart"></canvas>
+    </div>
+
+    <div class="legend-section">
+        <div class="legend-title">知识来源标记</div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #10b981;"></div>
+            <span class="legend-text">亲身经历 (绿色)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #3b82f6;"></div>
+            <span class="legend-text">他人分享 (蓝色)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #f59e0b;"></div>
+            <span class="legend-text">网络信息 (橙色)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ef4444;"></div>
+            <span class="legend-text">学校教育 (红色)</span>
+        </div>
+    </div>
+
+    <div class="dimension-section">
+        <div class="dimension-title">认知维度详情</div>
+        <div class="dimension-item">
+            <div class="dimension-name">行业了解</div>
+            <div class="dimension-value">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 75%; background: #10b981;"></div>
+                </div>
+                <span class="progress-label">75%</span>
+            </div>
+        </div>
+        <div class="dimension-item">
+            <div class="dimension-name">公司研究</div>
+            <div class="dimension-value">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%; background: #3b82f6;"></div>
+                </div>
+                <span class="progress-label">60%</span>
+            </div>
+        </div>
+        <div class="dimension-item">
+            <div class="dimension-name">岗位认知</div>
+            <div class="dimension-value">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 85%; background: #f59e0b;"></div>
+                </div>
+                <span class="progress-label">85%</span>
+            </div>
+        </div>
+        <div class="dimension-item">
+            <div class="dimension-name">薪资水平</div>
+            <div class="dimension-value">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 40%; background: #ef4444;"></div>
+                </div>
+                <span class="progress-label">40%</span>
+            </div>
+        </div>
+        <div class="dimension-item">
+            <div class="dimension-name">发展路径</div>
+            <div class="dimension-value">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 55%; background: #8b5cf6;"></div>
+                </div>
+                <span class="progress-label">55%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison-section">
+        <div class="comparison-title">与小组成员对比</div>
+        <div class="comparison-tabs">
+            <div class="comparison-tab active">张同学</div>
+            <div class="comparison-tab">李同学</div>
+            <div class="comparison-tab">王同学</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">发现差距</div>
+            <div class="insight-text">张同学在"薪资水平"维度认知度为 85%，而你只有 40%。建议向张同学请教薪资谈判技巧。</div>
+        </div>
+        <div class="insight-card" style="background: #dbeafe; border-color: #3b82f6;">
+            <div class="insight-title" style="color: #1e40af;">你的优势</div>
+            <div class="insight-text" style="color: #1e3a8a;">你在"行业了解"维度比张同学高出 25%，可以考虑在圆桌讨论中分享你的见解。</div>
+        </div>
+    </div>
+
+    <div class="action-section">
+        <div class="action-title">提升建议</div>
+        <button class="action-btn" onclick="alert('即将跳转到圆桌讨论页面...')">参加圆桌讨论，突破认知边界</button>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-content">
+            <a href="calendar.html" class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-text">日历</div>
+            </a>
+            <a href="roundtable.html" class="nav-item">
+                <div class="nav-icon">💬</div>
+                <div class="nav-text">圆桌</div>
+            </a>
+            <a href="cognitive-map.html" class="nav-item active">
+                <div class="nav-icon">🗺️</div>
+                <div class="nav-text">认知图</div>
+            </a>
+            <a href="#" class="nav-item" onclick="alert('个人中心页面开发中...')">
+                <div class="nav-icon">👤</div>
+                <div class="nav-text">我的</div>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        // 雷达图绘制
+        function drawRadarChart() {
+            const canvas = document.getElementById('radarChart');
+            const ctx = canvas.getContext('2d');
+
+            // 设置canvas实际大小
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+
+            const centerX = canvas.offsetWidth / 2;
+            const centerY = canvas.offsetHeight / 2;
+            const radius = Math.min(centerX, centerY) - 50;
+
+            // 维度数据
+            const dimensions = ['行业了解', '公司研究', '岗位认知', '薪资水平', '发展路径', '工作环境'];
+            const values = [75, 60, 85, 40, 55, 70];
+            const maxValue = 100;
+
+            // 绘制背景网格
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+
+            for (let i = 1; i <= 5; i++) {
+                ctx.beginPath();
+                const r = (radius / 5) * i;
+                for (let j = 0; j <= dimensions.length; j++) {
+                    const angle = (Math.PI * 2 / dimensions.length) * j - Math.PI / 2;
+                    const x = centerX + r * Math.cos(angle);
+                    const y = centerY + r * Math.sin(angle);
+                    if (j === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+
+            // 绘制轴线
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = (Math.PI * 2 / dimensions.length) * i - Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
+                ctx.stroke();
+            }
+
+            // 绘制标签
+            ctx.fillStyle = '#374151';
+            ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI"';
+            ctx.textAlign = 'center';
+
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = (Math.PI * 2 / dimensions.length) * i - Math.PI / 2;
+                const x = centerX + (radius + 25) * Math.cos(angle);
+                const y = centerY + (radius + 25) * Math.sin(angle);
+                ctx.fillText(dimensions[i], x, y + 5);
+            }
+
+            // 绘制数据区域
+            ctx.fillStyle = 'rgba(240, 147, 251, 0.3)';
+            ctx.strokeStyle = '#f093fb';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            for (let i = 0; i <= dimensions.length; i++) {
+                const index = i % dimensions.length;
+                const angle = (Math.PI * 2 / dimensions.length) * index - Math.PI / 2;
+                const r = (values[index] / maxValue) * radius;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // 绘制数据点
+            ctx.fillStyle = '#f093fb';
+            for (let i = 0; i < dimensions.length; i++) {
+                const angle = (Math.PI * 2 / dimensions.length) * i - Math.PI / 2;
+                const r = (values[i] / maxValue) * radius;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 初始化
+        window.addEventListener('load', drawRadarChart);
+        window.addEventListener('resize', drawRadarChart);
+
+        // 对比标签切换
+        document.querySelectorAll('.comparison-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.comparison-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

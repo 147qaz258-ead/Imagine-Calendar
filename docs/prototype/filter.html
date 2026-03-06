@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畅选日历 - 个性化筛选</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* 筛选页特定样式 */
+    .filter-header {
+      background: white;
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .filter-header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .filter-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .filter-reset {
+      color: #2563eb;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    /* 已选标签 */
+    .selected-tags {
+      padding: 12px 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      min-height: 50px;
+    }
+
+    .selected-tags-title {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: #2563eb;
+      color: white;
+      border-radius: 16px;
+      font-size: 0.875rem;
+    }
+
+    .tag-remove {
+      cursor: pointer;
+      opacity: 0.8;
+    }
+
+    .tag-remove:hover {
+      opacity: 1;
+    }
+
+    .empty-tags {
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+
+    /* 筛选维度列表 */
+    .filter-sections {
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+
+    .filter-section {
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .filter-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .filter-section-header:hover {
+      background: #f9fafb;
+    }
+
+    .filter-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-section-icon {
+      font-size: 1.25rem;
+    }
+
+    .filter-section-name {
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .filter-section-count {
+      font-size: 0.75rem;
+      color: #2563eb;
+      background: #dbeafe;
+      padding: 2px 8px;
+      border-radius: 8px;
+    }
+
+    .filter-section-toggle {
+      transition: transform 0.2s ease;
+    }
+
+    .filter-section.expanded .filter-section-toggle {
+      transform: rotate(180deg);
+    }
+
+    .filter-section-content {
+      padding: 12px 16px;
+      display: none;
+    }
+
+    .filter-section.expanded .filter-section-content {
+      display: block;
+    }
+
+    .filter-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-option {
+      padding: 8px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-option:hover {
+      border-color: #2563eb;
+      background: #f0f7ff;
+    }
+
+    .filter-option.selected {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    /* 底部操作栏 */
+    .filter-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 12px;
+    }
+
+    .filter-apply-btn {
+      flex: 1;
+    }
+
+    /* 原型控件 */
+    .prototype-controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 1000;
+    }
+
+    .prototype-controls button {
+      display: block;
+      width: 100%;
+      margin: 4px 0;
+      padding: 6px 12px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- 原型状态切换 -->
+  <div class="prototype-controls">
+    <div style="font-weight:600;margin-bottom:8px;">状态切换</div>
+    <button onclick="resetFilters()">重置所有</button>
+    <button onclick="applyPreset('tech')">互联网预设</button>
+    <button onclick="applyPreset('soe')">国企预设</button>
+  </div>
+
+  <!-- 头部 -->
+  <div class="filter-header">
+    <div class="filter-header-content">
+      <div class="filter-title">个性化筛选</div>
+      <div class="filter-reset" onclick="resetFilters()">重置</div>
+    </div>
+  </div>
+
+  <!-- 已选标签 -->
+  <div class="selected-tags">
+    <div class="selected-tags-title">已选条件（<span id="selectedCount">0</span>项）</div>
+    <div class="tags-container" id="selectedTagsContainer">
+      <span class="empty-tags">点击下方选项添加筛选条件</span>
+    </div>
+  </div>
+
+  <!-- 筛选维度列表 -->
+  <div class="filter-sections" id="filterSections">
+    <!-- JavaScript 动态生成 -->
+  </div>
+
+  <!-- 底部操作栏 -->
+  <div class="filter-footer">
+    <button class="btn btn-secondary filter-apply-btn" onclick="cancelFilter()">取消</button>
+    <button class="btn btn-primary filter-apply-btn" onclick="applyFilter()">应用筛选</button>
+  </div>
+
+  <script>
+    // 13个筛选维度数据
+    const filterDimensions = [
+      {
+        id: 'location',
+        name: '工作地点',
+        icon: '📍',
+        options: ['北京', '上海', '广州', '深圳', '杭州', '成都', '南京', '武汉', '西安', '苏州', '天津', '重庆', '全国可调配']
+      },
+      {
+        id: 'selfPosition',
+        name: '自我定位',
+        icon: '🎯',
+        options: ['稳定优先', '成长优先', '薪资优先', '平衡优先', '兴趣优先', '大厂光环', '创业心态']
+      },
+      {
+        id: 'direction',
+        name: '发展方向',
+        icon: '🧭',
+        options: ['技术研发', '产品经理', '运营市场', '设计创意', '金融财务', '人力资源', '销售商务', '供应链', '数据分析']
+      },
+      {
+        id: 'industry',
+        name: '行业领域',
+        icon: '🏭',
+        options: ['互联网/IT', '金融', '制造业', '快消零售', '医疗健康', '教育培训', '房地产', '能源环保', '文化传媒', '政府/公共事业']
+      },
+      {
+        id: 'platformType',
+        name: '平台性质',
+        icon: '🏢',
+        options: ['国企', '外企', '民企', '创业公司', '政府机关', '事业单位', 'NGO/NPO']
+      },
+      {
+        id: 'companySize',
+        name: '企业规模',
+        icon: '📊',
+        options: ['大型企业(10000+人)', '中型企业(1000-10000人)', '小型企业(100-1000人)', '初创企业(<100人)']
+      },
+      {
+        id: 'culture',
+        name: '企业文化',
+        icon: '🌸',
+        options: ['狼性文化', '佛系文化', '工程师文化', '销售导向', '创新驱动', '流程规范', '扁平管理']
+      },
+      {
+        id: 'leadership',
+        name: '领导风格',
+        icon: '👔',
+        options: ['放权型', '指导型', '结果导向', '过程导向', '亲力亲为', '授权信任']
+      },
+      {
+        id: 'training',
+        name: '培训发展',
+        icon: '📚',
+        options: ['管培生项目', '导师制', '轮岗机会', '外部培训', '学历提升支持', '无系统培训']
+      },
+      {
+        id: 'overtime',
+        name: '加班偏好',
+        icon: '⏰',
+        options: ['接受996', '接受适度加班', '准点下班', '弹性工作制', '远程办公']
+      },
+      {
+        id: 'vacation',
+        name: '假期制度',
+        icon: '🏖️',
+        options: ['双休', '大小周', '弹性调休', '带薪年假15天+', '带薪病假', '育儿假']
+      },
+      {
+        id: 'medical',
+        name: '医疗保障',
+        icon: '🏥',
+        options: ['六险一金', '七险一金', '补充医疗', '年度体检', '心理咨询', '家属保障']
+      },
+      {
+        id: 'maternity',
+        name: '生育福利',
+        icon: '👶',
+        options: ['产假158天+', '陪产假15天+', '育儿假', '生育津贴', '母婴室', '托儿服务']
+      }
+    ];
+
+    // 已选择的筛选条件
+    let selectedFilters = {};
+
+    // 初始化筛选页面
+    function initFilterPage() {
+      renderFilterSections();
+      updateSelectedTags();
+    }
+
+    // 渲染筛选维度列表
+    function renderFilterSections() {
+      const container = document.getElementById('filterSections');
+      container.innerHTML = filterDimensions.map(dim => `
+        <div class="filter-section" id="section-${dim.id}">
+          <div class="filter-section-header" onclick="toggleSection('${dim.id}')">
+            <div class="filter-section-title">
+              <span class="filter-section-icon">${dim.icon}</span>
+              <span class="filter-section-name">${dim.name}</span>
+              ${getSelectedCount(dim.id) > 0 ? `<span class="filter-section-count">${getSelectedCount(dim.id)}</span>` : ''}
+            </div>
+            <span class="filter-section-toggle">▼</span>
+          </div>
+          <div class="filter-section-content">
+            <div class="filter-options">
+              ${dim.options.map(opt => `
+                <div class="filter-option ${isSelected(dim.id, opt) ? 'selected' : ''}"
+                     onclick="toggleOption('${dim.id}', '${opt}')">
+                  ${opt}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 切换维度展开/收起
+    function toggleSection(id) {
+      const section = document.getElementById(`section-${id}`);
+      section.classList.toggle('expanded');
+    }
+
+    // 判断选项是否已选
+    function isSelected(dimId, option) {
+      return selectedFilters[dimId] && selectedFilters[dimId].includes(option);
+    }
+
+    // 获取维度已选数量
+    function getSelectedCount(dimId) {
+      return selectedFilters[dimId] ? selectedFilters[dimId].length : 0;
+    }
+
+    // 切换选项
+    function toggleOption(dimId, option) {
+      if (!selectedFilters[dimId]) {
+        selectedFilters[dimId] = [];
+      }
+
+      const index = selectedFilters[dimId].indexOf(option);
+      if (index > -1) {
+        selectedFilters[dimId].splice(index, 1);
+        if (selectedFilters[dimId].length === 0) {
+          delete selectedFilters[dimId];
+        }
+      } else {
+        selectedFilters[dimId].push(option);
+      }
+
+      renderFilterSections();
+      updateSelectedTags();
+    }
+
+    // 更新已选标签显示
+    function updateSelectedTags() {
+      const container = document.getElementById('selectedTagsContainer');
+      let totalCount = 0;
+      let tagsHtml = '';
+
+      Object.keys(selectedFilters).forEach(dimId => {
+        const dim = filterDimensions.find(d => d.id === dimId);
+        selectedFilters[dimId].forEach(opt => {
+          totalCount++;
+          tagsHtml += `
+            <span class="tag">
+              ${opt}
+              <span class="tag-remove" onclick="removeOption('${dimId}', '${opt}')">×</span>
+            </span>
+          `;
+        });
+      });
+
+      document.getElementById('selectedCount').textContent = totalCount;
+
+      if (totalCount === 0) {
+        container.innerHTML = '<span class="empty-tags">点击下方选项添加筛选条件</span>';
+      } else {
+        container.innerHTML = tagsHtml;
+      }
+    }
+
+    // 移除单个选项
+    function removeOption(dimId, option) {
+      const index = selectedFilters[dimId].indexOf(option);
+      if (index > -1) {
+        selectedFilters[dimId].splice(index, 1);
+        if (selectedFilters[dimId].length === 0) {
+          delete selectedFilters[dimId];
+        }
+      }
+      renderFilterSections();
+      updateSelectedTags();
+    }
+
+    // 重置所有筛选
+    function resetFilters() {
+      selectedFilters = {};
+      renderFilterSections();
+      updateSelectedTags();
+    }
+
+    // 应用预设 - 互联网方向
+    function applyPreset(preset) {
+      resetFilters();
+
+      if (preset === 'tech') {
+        selectedFilters = {
+          location: ['北京', '上海', '深圳', '杭州'],
+          industry: ['互联网/IT'],
+          platformType: ['民企', '外企'],
+          culture: ['工程师文化', '创新驱动'],
+          overtime: ['弹性工作制', '接受适度加班']
+        };
+      } else if (preset === 'soe') {
+        selectedFilters = {
+          location: ['全国可调配'],
+          platformType: ['国企', '政府机关'],
+          companySize: ['大型企业(10000+人)'],
+          vacation: ['双休', '带薪年假15天+'],
+          medical: ['六险一金', '补充医疗']
+        };
+      }
+
+      renderFilterSections();
+      updateSelectedTags();
+
+      // 展开所有有选择的维度
+      Object.keys(selectedFilters).forEach(dimId => {
+        document.getElementById(`section-${dimId}`).classList.add('expanded');
+      });
+    }
+
+    // 取消筛选
+    function cancelFilter() {
+      window.location.href = 'calendar.html';
+    }
+
+    // 应用筛选
+    function applyFilter() {
+      const count = Object.values(selectedFilters).flat().length;
+      alert(`已应用 ${count} 个筛选条件\n\n原型说明：\n- 返回日历页面\n- 只显示符合条件的招聘信息\n- 筛选条件保存在本地`);
+      window.location.href = 'calendar.html';
+    }
+
+    // 初始化
+    initFilterPage();
+  </script>
+</body>
+</html>

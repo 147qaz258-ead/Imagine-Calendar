@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: career-calendar-server
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: node dist/main.js
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGINS
+        value: https://career-calendar.vercel.app
