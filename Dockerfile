@@ -1,19 +1,27 @@
-# 后端服务
-FROM node:20-alpine AS backend-builder
-WORKDIR /app
-RUN npm install -g pnpm
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY server/package.json ./server/
-RUN cd server && pnpm install --frozen-lockfile
-COPY server ./server
-COPY tsconfig.json ./
-RUN cd server && pnpm build
+# 后端服务 - 简化版
+FROM node:20-alpine
 
-FROM node:20-alpine AS backend
 WORKDIR /app
+
+# 安装 pnpm
 RUN npm install -g pnpm
-COPY --from=backend-builder /app/server/dist ./dist
-COPY --from=backend-builder /app/server/node_modules ./node_modules
-COPY --from=backend-builder /app/server/package.json ./
+
+# 复制 server 目录的 package.json
+COPY server/package.json ./server/
+
+# 安装依赖
+WORKDIR /app/server
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# 复制源代码
+COPY server ./
+COPY tsconfig.json ../
+
+# 构建
+RUN pnpm build
+
+# 暴露端口
 EXPOSE 3001
+
+# 启动
 CMD ["node", "dist/main.js"]
