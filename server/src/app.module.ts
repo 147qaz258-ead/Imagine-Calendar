@@ -51,7 +51,7 @@ import * as Joi from 'joi'
         REDIS_HOST: Joi.string().when('REDIS_URL', {
           is: Joi.exist(),
           then: Joi.optional(),
-          otherwise: Joi.default('localhost'),
+          otherwise: Joi.string().default('localhost'),
         }),
         REDIS_PORT: Joi.number().default(6379),
         JWT_SECRET: Joi.string().required(),

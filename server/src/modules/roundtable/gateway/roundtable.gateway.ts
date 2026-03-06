@@ -8,7 +8,7 @@ import {
   MessageBody,
   WsException,
 } from '@nestjs/websockets';
-import { Logger, UseFilters, Inject, forwardRef } from '@nestjs/common';
+import { Logger, UseFilters, Inject, forwardRef, ArgumentsHost } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -27,7 +27,8 @@ import { RoundTableService } from '../roundtable.service';
  * WebSocket 异常过滤器
  */
 class WsExceptionFilter {
-  catch(exception: unknown, client: Socket) {
+  catch(exception: unknown, host: ArgumentsHost) {
+    const client = host.switchToWs().getClient() as Socket;
     const error = exception instanceof WsException
       ? exception.getError()
       : { code: 'INTERNAL_ERROR', message: 'Internal server error' };
