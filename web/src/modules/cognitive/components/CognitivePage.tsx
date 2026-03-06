@@ -1,7 +1,7 @@
 /**
  * 认知图谱页面
  */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchCognitiveMap, fetchCognitiveHistory } from '../store/cognitiveSlice'

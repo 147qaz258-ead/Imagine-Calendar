@@ -5,8 +5,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import type {
   CognitiveState,
   CognitiveMap,
-  CognitiveHistory,
-  DimensionTrend,
   UpdateDimensionRequest,
   CognitiveHistoryQuery,
 } from '../types'

@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useSocket } from '../hooks/useSocket'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
-import { addMessage, resetChat, setParticipants } from '../store/chatSlice'
+import { resetChat, setParticipants } from '../store/chatSlice'
 import type { ChatMessage, Participant } from '../types'
 
 interface ChatRoomProps {
@@ -68,7 +68,6 @@ function ParticipantAvatars({ participants }: { participants: Participant[] }) {
  */
 export function ChatRoom({
   roundTableId,
-  wsEndpoint,
   participants: initialParticipants = [],
   initialMessages = [],
   onLeave,
@@ -97,7 +96,7 @@ export function ChatRoom({
   const { isConnected, messages, participants, connectionError } = chatState
 
   // 本地消息状态（用于初始消息）
-  const [localMessages, setLocalMessages] = useState<ChatMessage[]>(initialMessages)
+  const [localMessages] = useState<ChatMessage[]>(initialMessages)
 
   // 使用 WebSocket Hook
   const { sendMessage, disconnect } = useSocket({

@@ -54,12 +54,12 @@ export function useSocket({
   autoConnect = true,
 }: UseSocketOptions): UseSocketReturn {
   const dispatch = useAppDispatch()
-  const { isConnected, connectionError } = useAppSelector((state) => {
+  const { isConnected } = useAppSelector((state) => {
     // Chat slice might not be registered, handle gracefully
     if ('chat' in state) {
-      return state.chat as { isConnected: boolean; connectionError: string | null }
+      return { isConnected: (state.chat as { isConnected: boolean }).isConnected }
     }
-    return { isConnected: false, connectionError: null }
+    return { isConnected: false }
   })
   const { token } = useAppSelector((state) => state.auth)
   const unsubscribersRef = useRef<(() => void)[]>([])
