@@ -1,6 +1,8 @@
 {
+  "framework": "vite",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
+  "installCommand": "pnpm install",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -9,23 +11,6 @@
     {
       "source": "/socket.io/:path*",
       "destination": "https://career-calendar-server.onrender.com/socket.io/:path*"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "https://career-calendar-server.onrender.com/api/$1"
-    },
-    {
-      "src": "/socket.io/(.*)",
-      "dest": "https://career-calendar-server.onrender.com/socket.io/$1"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
     }
   ]
 }
