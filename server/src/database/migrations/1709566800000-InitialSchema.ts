@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm'
 
 /**
  * 初始化数据库迁移
@@ -8,12 +8,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Date: 2026-03-04
  */
 export class InitialSchema1709566800000 implements MigrationInterface {
-  name = 'InitialSchema1709566800000';
+  name = 'InitialSchema1709566800000'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 创建扩展
-    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
-    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`);
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`)
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`)
 
     // 创建更新时间函数
     await queryRunner.query(`
@@ -24,7 +24,7 @@ export class InitialSchema1709566800000 implements MigrationInterface {
           RETURN NEW;
       END;
       $$ language 'plpgsql'
-    `);
+    `)
 
     // 1. 用户表
     await queryRunner.query(`
@@ -43,10 +43,10 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_users_phone" ON "users"("phone")`);
-    await queryRunner.query(`CREATE INDEX "idx_users_created_at" ON "users"("created_at")`);
+    await queryRunner.query(`CREATE INDEX "idx_users_phone" ON "users"("phone")`)
+    await queryRunner.query(`CREATE INDEX "idx_users_created_at" ON "users"("created_at")`)
 
     // 用户更新触发器
     await queryRunner.query(`
@@ -54,7 +54,7 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         BEFORE UPDATE ON "users"
         FOR EACH ROW
         EXECUTE FUNCTION update_updated_at_column()
-    `);
+    `)
 
     // 2. 学校表
     await queryRunner.query(`
@@ -66,9 +66,9 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "level" VARCHAR(20),
         "created_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_schools_name" ON "schools"("name")`);
+    await queryRunner.query(`CREATE INDEX "idx_schools_name" ON "schools"("name")`)
 
     // 3. 专业表
     await queryRunner.query(`
@@ -78,9 +78,9 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "category" VARCHAR(50),
         "created_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_majors_name" ON "majors"("name")`);
+    await queryRunner.query(`CREATE INDEX "idx_majors_name" ON "majors"("name")`)
 
     // 4. 用户画像表
     await queryRunner.query(`
@@ -99,10 +99,12 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "updated_at" TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE("user_id")
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_user_profiles_user" ON "user_profiles"("user_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_user_preferences" ON "user_profiles" USING GIN("preferences")`);
+    await queryRunner.query(`CREATE INDEX "idx_user_profiles_user" ON "user_profiles"("user_id")`)
+    await queryRunner.query(
+      `CREATE INDEX "idx_user_preferences" ON "user_profiles" USING GIN("preferences")`,
+    )
 
     // 5. 验证码表
     await queryRunner.query(`
@@ -114,9 +116,11 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "used" BOOLEAN DEFAULT FALSE,
         "created_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_verification_codes_phone" ON "verification_codes"("phone", "created_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_verification_codes_phone" ON "verification_codes"("phone", "created_at")`,
+    )
 
     // 6. 事件表
     await queryRunner.query(`
@@ -141,10 +145,10 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_events_date" ON "events"("event_date")`);
-    await queryRunner.query(`CREATE INDEX "idx_events_company_type" ON "events"("company_type")`);
+    await queryRunner.query(`CREATE INDEX "idx_events_date" ON "events"("event_date")`)
+    await queryRunner.query(`CREATE INDEX "idx_events_company_type" ON "events"("company_type")`)
 
     // 7. 用户事件关联表
     await queryRunner.query(`
@@ -156,7 +160,7 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE("user_id", "event_id", "action")
       )
-    `);
+    `)
 
     // 8. 圆桌表
     await queryRunner.query(`
@@ -173,9 +177,9 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_roundtables_status" ON "roundtables"("status")`);
+    await queryRunner.query(`CREATE INDEX "idx_roundtables_status" ON "roundtables"("status")`)
 
     // 9. 圆桌参与者表
     await queryRunner.query(`
@@ -191,7 +195,7 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "created_at" TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE("roundtable_id", "user_id")
       )
-    `);
+    `)
 
     // 10. 聊天消息表
     await queryRunner.query(`
@@ -203,7 +207,7 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "message_type" VARCHAR(20) DEFAULT 'text',
         "created_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
     // 11. 认知图谱表
     await queryRunner.query(`
@@ -216,9 +220,11 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "recorded_at" TIMESTAMPTZ DEFAULT NOW(),
         "created_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_cognitive_maps_user" ON "cognitive_maps"("user_id", "recorded_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_cognitive_maps_user" ON "cognitive_maps"("user_id", "recorded_at")`,
+    )
 
     // 12. 通知表
     await queryRunner.query(`
@@ -233,27 +239,29 @@ export class InitialSchema1709566800000 implements MigrationInterface {
         "read_at" TIMESTAMPTZ,
         "created_at" TIMESTAMPTZ DEFAULT NOW()
       )
-    `);
+    `)
 
-    await queryRunner.query(`CREATE INDEX "idx_notifications_user" ON "notifications"("user_id", "is_read", "created_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_notifications_user" ON "notifications"("user_id", "is_read", "created_at")`,
+    )
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // 按依赖关系逆序删除表
-    await queryRunner.query(`DROP TABLE IF EXISTS "notifications"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "cognitive_maps"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "chat_messages"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "roundtable_participants"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "roundtables"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "user_events"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "events"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "verification_codes"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "user_profiles"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "majors"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "schools"`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "users"`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "notifications"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "cognitive_maps"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "chat_messages"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "roundtable_participants"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "roundtables"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "user_events"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "events"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "verification_codes"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "user_profiles"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "majors"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "schools"`)
+    await queryRunner.query(`DROP TABLE IF EXISTS "users"`)
 
     // 删除函数
-    await queryRunner.query(`DROP FUNCTION IF EXISTS update_updated_at_column()`);
+    await queryRunner.query(`DROP FUNCTION IF EXISTS update_updated_at_column()`)
   }
 }

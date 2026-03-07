@@ -1,7 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { FilterService, FilterOptionsResponse } from './filter.service';
-import { Public } from '../../common/decorators/public.decorator';
+import { Controller, Get } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { FilterService, FilterOptionsResponse } from './filter.service'
+import { Public } from '../../common/decorators/public.decorator'
 
 /**
  * 筛选选项控制器
@@ -39,6 +39,6 @@ export class FilterController {
     },
   })
   getFilterOptions(): FilterOptionsResponse {
-    return this.filterService.getFilterOptions();
+    return this.filterService.getFilterOptions()
   }
 }

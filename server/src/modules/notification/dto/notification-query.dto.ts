@@ -1,7 +1,7 @@
-import { IsOptional, IsEnum, IsBoolean, IsInt, Min, Max } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { NotificationType } from '../entities/notification.entity';
+import { IsOptional, IsEnum, IsBoolean, IsInt, Min, Max } from 'class-validator'
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
+import { NotificationType } from '../entities/notification.entity'
 
 /**
  * 通知查询参数
@@ -16,7 +16,7 @@ export class NotificationQueryDto {
   })
   @IsOptional()
   @IsEnum(NotificationType)
-  type?: NotificationType;
+  type?: NotificationType
 
   @ApiPropertyOptional({
     description: '是否已读',
@@ -25,7 +25,7 @@ export class NotificationQueryDto {
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
-  read?: boolean;
+  read?: boolean
 
   @ApiPropertyOptional({
     description: '页码',
@@ -36,7 +36,7 @@ export class NotificationQueryDto {
   @IsInt()
   @Min(1)
   @Type(() => Number)
-  page?: number = 1;
+  page?: number = 1
 
   @ApiPropertyOptional({
     description: '每页数量',
@@ -48,5 +48,5 @@ export class NotificationQueryDto {
   @Min(1)
   @Max(100)
   @Type(() => Number)
-  pageSize?: number = 20;
+  pageSize?: number = 20
 }

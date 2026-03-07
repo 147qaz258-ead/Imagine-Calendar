@@ -8,18 +8,14 @@ import {
   UseGuards,
   Request,
   ParseUUIDPipe,
-} from '@nestjs/common';
-import { RoundTableService } from './roundtable.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import {
-  RoundTableQueryDto,
-  ApplyRoundTableDto,
-  SubmitSummaryDto,
-} from './dto';
+} from '@nestjs/common'
+import { RoundTableService } from './roundtable.service'
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
+import { RoundTableQueryDto, ApplyRoundTableDto, SubmitSummaryDto } from './dto'
 
 interface RequestWithUser {
-  user: { id: string; phone: string };
+  user: { id: string; phone: string }
 }
 
 @ApiTags('round-tables')
@@ -37,7 +33,7 @@ export class RoundTableController {
   @Get()
   @ApiOperation({ summary: '获取圆桌列表' })
   async getRoundTables(@Query() query: RoundTableQueryDto) {
-    return this.roundTableService.getRoundTables(query);
+    return this.roundTableService.getRoundTables(query)
   }
 
   /**
@@ -48,7 +44,7 @@ export class RoundTableController {
   @Post('apply')
   @ApiOperation({ summary: '创建圆桌报名' })
   async apply(@Request() req: RequestWithUser, @Body() dto: ApplyRoundTableDto) {
-    return this.roundTableService.apply(req.user.id, dto);
+    return this.roundTableService.apply(req.user.id, dto)
   }
 
   /**
@@ -59,7 +55,7 @@ export class RoundTableController {
   @Get('questions')
   @ApiOperation({ summary: '获取圆桌问题清单' })
   async getQuestions() {
-    return this.roundTableService.getQuestions();
+    return this.roundTableService.getQuestions()
   }
 
   /**
@@ -69,7 +65,7 @@ export class RoundTableController {
   @Get('my')
   @ApiOperation({ summary: '获取我的圆桌' })
   async getMyRoundTables(@Request() req: RequestWithUser) {
-    return this.roundTableService.getMyRoundTables(req.user.id);
+    return this.roundTableService.getMyRoundTables(req.user.id)
   }
 
   /**
@@ -80,7 +76,7 @@ export class RoundTableController {
   @Get(':id')
   @ApiOperation({ summary: '获取圆桌详情' })
   async getRoundTableDetail(@Param('id', ParseUUIDPipe) id: string) {
-    return this.roundTableService.getRoundTableDetail(id);
+    return this.roundTableService.getRoundTableDetail(id)
   }
 
   /**
@@ -90,11 +86,8 @@ export class RoundTableController {
    */
   @Post(':id/join')
   @ApiOperation({ summary: '加入圆桌' })
-  async joinRoundTable(
-    @Request() req: RequestWithUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.roundTableService.joinRoundTable(req.user.id, id);
+  async joinRoundTable(@Request() req: RequestWithUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.roundTableService.joinRoundTable(req.user.id, id)
   }
 
   /**
@@ -104,11 +97,8 @@ export class RoundTableController {
    */
   @Post(':id/leave')
   @ApiOperation({ summary: '离开圆桌' })
-  async leaveRoundTable(
-    @Request() req: RequestWithUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.roundTableService.leaveRoundTable(req.user.id, id);
+  async leaveRoundTable(@Request() req: RequestWithUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.roundTableService.leaveRoundTable(req.user.id, id)
   }
 
   /**
@@ -123,7 +113,7 @@ export class RoundTableController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SubmitSummaryDto,
   ) {
-    return this.roundTableService.submitSummary(req.user.id, id, dto);
+    return this.roundTableService.submitSummary(req.user.id, id, dto)
   }
 
   /**
@@ -132,10 +122,7 @@ export class RoundTableController {
    */
   @Post(':id/cancel')
   @ApiOperation({ summary: '取消报名' })
-  async cancelApplication(
-    @Request() req: RequestWithUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return this.roundTableService.cancelApplication(req.user.id, id);
+  async cancelApplication(@Request() req: RequestWithUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.roundTableService.cancelApplication(req.user.id, id)
   }
 }

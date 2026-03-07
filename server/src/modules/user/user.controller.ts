@@ -11,8 +11,8 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
 import {
   ApiTags,
   ApiOperation,
@@ -20,16 +20,11 @@ import {
   ApiResponse,
   ApiConsumes,
   ApiParam,
-} from '@nestjs/swagger';
-import { UserService } from './user.service';
-import {
-  UpdateProfileDto,
-  UpdatePreferencesDto,
-  SchoolQueryDto,
-  MajorQueryDto,
-} from './dto';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Public } from '../../common/decorators/public.decorator';
+} from '@nestjs/swagger'
+import { UserService } from './user.service'
+import { UpdateProfileDto, UpdatePreferencesDto, SchoolQueryDto, MajorQueryDto } from './dto'
+import { CurrentUser } from '../../common/decorators/current-user.decorator'
+import { Public } from '../../common/decorators/public.decorator'
 
 /**
  * 用户控制器
@@ -99,7 +94,7 @@ export class UserController {
     },
   })
   async getProfile(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.getProfile(id);
+    return this.userService.getProfile(id)
   }
 
   /**
@@ -146,11 +141,8 @@ export class UserController {
       },
     },
   })
-  async updateProfile(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    return this.userService.updateProfile(id, dto);
+  async updateProfile(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProfileDto) {
+    return this.userService.updateProfile(id, dto)
   }
 
   /**
@@ -202,7 +194,7 @@ export class UserController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdatePreferencesDto,
   ) {
-    return this.userService.updatePreferences(id, dto);
+    return this.userService.updatePreferences(id, dto)
   }
 
   /**
@@ -245,7 +237,7 @@ export class UserController {
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.userService.uploadStudentCard(id, file);
+    return this.userService.uploadStudentCard(id, file)
   }
 }
 
@@ -282,7 +274,7 @@ export class SchoolController {
     },
   })
   async getSchools(@Query() query: SchoolQueryDto) {
-    return this.userService.getSchools(query);
+    return this.userService.getSchools(query)
   }
 }
 
@@ -319,6 +311,6 @@ export class MajorController {
     },
   })
   async getMajors(@Query() query: MajorQueryDto) {
-    return this.userService.getMajors(query);
+    return this.userService.getMajors(query)
   }
 }

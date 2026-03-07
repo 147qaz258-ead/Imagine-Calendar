@@ -7,19 +7,19 @@ import {
   ManyToMany,
   JoinTable,
   Index,
-} from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+} from 'typeorm'
+import { User } from '../../user/entities/user.entity'
 
 /**
  * 企业类型枚举（颜色编码）
  * 对应 API-CONTRACT.md CompanyType
  */
 export enum CompanyType {
-  SOE = 'soe',                   // 国企（灰色）
-  FOREIGN = 'foreign',           // 外企（紫色）
-  PRIVATE = 'private',           // 民企（黄色）
-  STARTUP = 'startup',           // 创业公司（橙色）
-  GOVERNMENT = 'government',     // 事业单位（蓝色）
+  SOE = 'soe', // 国企（灰色）
+  FOREIGN = 'foreign', // 外企（紫色）
+  PRIVATE = 'private', // 民企（黄色）
+  STARTUP = 'startup', // 创业公司（橙色）
+  GOVERNMENT = 'government', // 事业单位（蓝色）
 }
 
 /**
@@ -29,13 +29,13 @@ export enum CompanyType {
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Column({ type: 'varchar', length: 200 })
-  title: string;
+  title: string
 
   @Column({ type: 'varchar', length: 200, name: 'company_name' })
-  company: string;
+  company: string
 
   @Column({
     type: 'enum',
@@ -43,59 +43,69 @@ export class Event {
     name: 'company_type',
     nullable: true,
   })
-  companyType: CompanyType;
+  companyType: CompanyType
 
   @Column({ type: 'varchar', length: 200, nullable: true })
-  position: string;
+  position: string
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description: string
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  location: string;
+  location: string
 
   @Index()
   @Column({ type: 'date', name: 'event_date' })
-  eventDate: string;
+  eventDate: string
 
   @Column({ type: 'varchar', length: 5, nullable: true, name: 'start_time' })
-  startTime: string;
+  startTime: string
 
   @Column({ type: 'varchar', length: 5, nullable: true, name: 'end_time' })
-  endTime: string;
+  endTime: string
 
   @Column({ type: 'timestamptz', nullable: true })
-  deadline: Date;
+  deadline: Date
 
-  @Column({ type: 'text', nullable: true, name: 'requirements', transformer: {
-    to: (value: string[]) => value ? JSON.stringify(value) : null,
-    from: (value: string) => value ? JSON.parse(value) : null,
-  }})
-  requirements: string[];
+  @Column({
+    type: 'text',
+    nullable: true,
+    name: 'requirements',
+    transformer: {
+      to: (value: string[]) => (value ? JSON.stringify(value) : null),
+      from: (value: string) => (value ? JSON.parse(value) : null),
+    },
+  })
+  requirements: string[]
 
-  @Column({ type: 'text', nullable: true, name: 'benefits', transformer: {
-    to: (value: string[]) => value ? JSON.stringify(value) : null,
-    from: (value: string) => value ? JSON.parse(value) : null,
-  }})
-  benefits: string[];
+  @Column({
+    type: 'text',
+    nullable: true,
+    name: 'benefits',
+    transformer: {
+      to: (value: string[]) => (value ? JSON.stringify(value) : null),
+      from: (value: string) => (value ? JSON.parse(value) : null),
+    },
+  })
+  benefits: string[]
 
   @Column({ type: 'varchar', length: 500, nullable: true, name: 'apply_url' })
-  applyUrl: string;
+  applyUrl: string
 
   @Column({ type: 'simple-array', nullable: true })
-  tags: string[];
+  tags: string[]
 
   @Column({ type: 'varchar', length: 200, nullable: true })
-  source: string;
+  source: string
 
   @Column({ type: 'varchar', length: 20, default: 'active' })
-  status: string;
+  status: string
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt: Date
 
   // 关注用户关系通过 UserEvent 实体维护
 }

@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { Notification, NotificationType } from './entities/notification.entity';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository, In } from 'typeorm'
+import { Notification, NotificationType } from './entities/notification.entity'
 
 @Injectable()
 export class NotificationService {
@@ -13,20 +13,20 @@ export class NotificationService {
   async getNotifications(
     userId: string,
     options: {
-      type?: NotificationType;
-      read?: boolean;
-      page: number;
-      pageSize: number;
+      type?: NotificationType
+      read?: boolean
+      page: number
+      pageSize: number
     },
   ) {
-    const where: any = { userId };
+    const where: any = { userId }
 
     if (options.type) {
-      where.type = options.type;
+      where.type = options.type
     }
 
     if (options.read !== undefined) {
-      where.read = options.read;
+      where.read = options.read
     }
 
     const [notifications, total] = await this.notificationRepository.findAndCount({
@@ -34,11 +34,11 @@ export class NotificationService {
       order: { createdAt: 'DESC' },
       skip: (options.page - 1) * options.pageSize,
       take: options.pageSize,
-    });
+    })
 
     const unreadCount = await this.notificationRepository.count({
       where: { userId, read: false },
-    });
+    })
 
     return {
       success: true,
@@ -47,13 +47,13 @@ export class NotificationService {
         total,
         unreadCount,
       },
-    };
+    }
   }
 
   async getUnreadCount(userId: string) {
     const count = await this.notificationRepository.count({
       where: { userId, read: false },
-    });
+    })
 
     const byType = await this.notificationRepository
       .createQueryBuilder('notification')
@@ -62,12 +62,15 @@ export class NotificationService {
       .where('notification.userId = :userId', { userId })
       .andWhere('notification.read = false')
       .groupBy('notification.type')
-      .getRawMany();
+      .getRawMany()
 
-    const byTypeResult = byType.reduce((acc, item) => {
-      acc[item.type] = parseInt(item.count);
-      return acc;
-    }, {} as Record<NotificationType, number>);
+    const byTypeResult = byType.reduce(
+      (acc, item) => {
+        acc[item.type] = parseInt(item.count)
+        return acc
+      },
+      {} as Record<NotificationType, number>,
+    )
 
     return {
       success: true,
@@ -75,25 +78,25 @@ export class NotificationService {
         count,
         byType: byTypeResult,
       },
-    };
+    }
   }
 
   async markAsRead(id: string, userId: string) {
     const notification = await this.notificationRepository.findOne({
       where: { id, userId },
-    });
+    })
 
     if (!notification) {
       return {
         success: false,
         message: '通知不存在',
-      };
+      }
     }
 
-    notification.read = true;
-    notification.readAt = new Date();
+    notification.read = true
+    notification.readAt = new Date()
 
-    await this.notificationRepository.save(notification);
+    await this.notificationRepository.save(notification)
 
     return {
       success: true,
@@ -101,32 +104,32 @@ export class NotificationService {
         read: true,
         readAt: notification.readAt,
       },
-    };
+    }
   }
 
   async markAllAsRead(userId: string) {
     const result = await this.notificationRepository.update(
       { userId, read: false },
       { read: true, readAt: new Date() },
-    );
+    )
 
     return {
       success: true,
       data: {
         updatedCount: result.affected || 0,
       },
-    };
+    }
   }
 
   async createNotification(data: {
-    userId: string;
-    type: NotificationType;
-    title: string;
-    content: string;
-    data?: Record<string, any>;
+    userId: string
+    type: NotificationType
+    title: string
+    content: string
+    data?: Record<string, any>
   }) {
-    const notification = this.notificationRepository.create(data);
-    await this.notificationRepository.save(notification);
-    return notification;
+    const notification = this.notificationRepository.create(data)
+    await this.notificationRepository.save(notification)
+    return notification
   }
 }

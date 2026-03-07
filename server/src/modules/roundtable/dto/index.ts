@@ -1,1 +1,1 @@
-export * from './roundtable.dto';
+export * from './roundtable.dto'

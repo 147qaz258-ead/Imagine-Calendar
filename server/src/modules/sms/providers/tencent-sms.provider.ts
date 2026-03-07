@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { SendResult, ISmsService } from '../interfaces/sms.interface';
+import { Injectable, Logger } from '@nestjs/common'
+import { SendResult, ISmsService } from '../interfaces/sms.interface'
 
 /**
  * 腾讯云短信服务
@@ -7,7 +7,7 @@ import { SendResult, ISmsService } from '../interfaces/sms.interface';
  */
 @Injectable()
 export class TencentSmsService implements ISmsService {
-  private readonly logger = new Logger(TencentSmsService.name);
+  private readonly logger = new Logger(TencentSmsService.name)
 
   // 配置项（从环境变量读取）
   // private secretId: string;
@@ -29,54 +29,54 @@ export class TencentSmsService implements ISmsService {
     //   eventReminder: process.env.TENCENT_SMS_TEMPLATE_EVENT_REMINDER,
     // };
 
-    this.logger.warn('TencentSmsService is not fully implemented. Using mock behavior.');
+    this.logger.warn('TencentSmsService is not fully implemented. Using mock behavior.')
   }
 
   /**
    * 发送验证码短信
    */
   async sendVerifyCode(phone: string, code: string): Promise<SendResult> {
-    this.logger.log(`[Tencent SMS] 发送验证码到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Tencent SMS] 发送验证码到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Tencent SMS service not implemented',
-    };
+    }
   }
 
   /**
    * 发送圆桌匹配成功通知
    */
   async sendRoundtableMatched(phone: string, time: string): Promise<SendResult> {
-    this.logger.log(`[Tencent SMS] 发送圆桌匹配通知到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Tencent SMS] 发送圆桌匹配通知到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Tencent SMS service not implemented',
-    };
+    }
   }
 
   /**
    * 发送圆桌提醒
    */
   async sendRoundtableReminder(phone: string): Promise<SendResult> {
-    this.logger.log(`[Tencent SMS] 发送圆桌提醒到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Tencent SMS] 发送圆桌提醒到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Tencent SMS service not implemented',
-    };
+    }
   }
 
   /**
    * 发送活动提醒
    */
   async sendEventReminder(phone: string, eventName: string, time: string): Promise<SendResult> {
-    this.logger.log(`[Tencent SMS] 发送活动提醒到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Tencent SMS] 发送活动提醒到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Tencent SMS service not implemented',
-    };
+    }
   }
 }

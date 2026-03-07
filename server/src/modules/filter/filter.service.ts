@@ -1,34 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common'
 
 /**
  * 筛选选项接口
  */
 export interface FilterOption {
-  value: string;
-  label: string;
-  description?: string;
+  value: string
+  label: string
+  description?: string
 }
 
 /**
  * 筛选选项响应接口
  */
 export interface FilterOptionsResponse {
-  success: boolean;
+  success: boolean
   data: {
-    locations: FilterOption[];
-    selfPositioning: FilterOption[];
-    developmentDirection: FilterOption[];
-    industries: FilterOption[];
-    platformTypes: FilterOption[];
-    companyScales: FilterOption[];
-    companyCulture: FilterOption[];
-    leadershipStyle: FilterOption[];
-    trainingPrograms: FilterOption[];
-    overtimePreference: FilterOption[];
-    holidayPolicy: FilterOption[];
-    medicalBenefits: FilterOption[];
-    maternityBenefits: FilterOption[];
-  };
+    locations: FilterOption[]
+    selfPositioning: FilterOption[]
+    developmentDirection: FilterOption[]
+    industries: FilterOption[]
+    platformTypes: FilterOption[]
+    companyScales: FilterOption[]
+    companyCulture: FilterOption[]
+    leadershipStyle: FilterOption[]
+    trainingPrograms: FilterOption[]
+    overtimePreference: FilterOption[]
+    holidayPolicy: FilterOption[]
+    medicalBenefits: FilterOption[]
+    maternityBenefits: FilterOption[]
+  }
 }
 
 /**
@@ -58,7 +58,7 @@ export class FilterService {
         medicalBenefits: this.getMedicalBenefits(),
         maternityBenefits: this.getMaternityBenefits(),
       },
-    };
+    }
   }
 
   /**
@@ -72,7 +72,7 @@ export class FilterService {
       { value: 'hangzhou', label: '杭州' },
       { value: 'chengdu', label: '成都' },
       { value: 'other', label: '其他' },
-    ];
+    ]
   }
 
   /**
@@ -85,7 +85,7 @@ export class FilterService {
       { value: 'operation', label: '运营' },
       { value: 'sales', label: '销售' },
       { value: 'functional', label: '职能' },
-    ];
+    ]
   }
 
   /**
@@ -97,7 +97,7 @@ export class FilterService {
       { value: 'management', label: '管理路线', description: '向管理方向发展' },
       { value: 'entrepreneurship', label: '创业', description: '自主创业或加入创业团队' },
       { value: 'freelance', label: '自由职业', description: '自由职业或独立顾问' },
-    ];
+    ]
   }
 
   /**
@@ -111,7 +111,7 @@ export class FilterService {
       { value: 'education', label: '教育' },
       { value: 'healthcare', label: '医疗' },
       { value: 'other', label: '其他' },
-    ];
+    ]
   }
 
   /**
@@ -123,7 +123,7 @@ export class FilterService {
       { value: 'foreign', label: '外企' },
       { value: 'private', label: '民企' },
       { value: 'public_institution', label: '事业单位' },
-    ];
+    ]
   }
 
   /**
@@ -135,7 +135,7 @@ export class FilterService {
       { value: '50_200', label: '50-200人' },
       { value: '200_1000', label: '200-1000人' },
       { value: 'over_1000', label: '1000人以上' },
-    ];
+    ]
   }
 
   /**
@@ -147,7 +147,7 @@ export class FilterService {
       { value: 'hierarchical', label: '层级分明', description: '清晰的汇报关系和晋升路径' },
       { value: 'innovation_oriented', label: '创新导向', description: '鼓励尝试新事物，容忍失败' },
       { value: 'stability_oriented', label: '稳定导向', description: '注重流程规范，稳健发展' },
-    ];
+    ]
   }
 
   /**
@@ -159,7 +159,7 @@ export class FilterService {
       { value: 'delegating', label: '放权型', description: '给予充分自主权，结果导向' },
       { value: 'directive', label: '指令型', description: '明确指示任务，严格把控过程' },
       { value: 'collaborative', label: '协作型', description: '平等参与，共同决策' },
-    ];
+    ]
   }
 
   /**
@@ -170,7 +170,7 @@ export class FilterService {
       { value: 'systematic', label: '有系统培训', description: '完善的培训体系和课程' },
       { value: 'mentorship', label: '导师带教', description: '一对一导师指导学习' },
       { value: 'self_learning', label: '自学为主', description: '依靠自学和项目实践成长' },
-    ];
+    ]
   }
 
   /**
@@ -181,7 +181,7 @@ export class FilterService {
       { value: '965', label: '965', description: '早9晚6双休，工作生活平衡' },
       { value: '996_accept', label: '996接受', description: '可以接受高强度工作节奏' },
       { value: 'flexible', label: '弹性工作', description: '工作时间灵活，结果导向' },
-    ];
+    ]
   }
 
   /**
@@ -192,7 +192,7 @@ export class FilterService {
       { value: 'double_off', label: '双休' },
       { value: 'single_off', label: '单休' },
       { value: 'big_small_week', label: '大小周' },
-    ];
+    ]
   }
 
   /**
@@ -203,7 +203,7 @@ export class FilterService {
       { value: 'basic', label: '基础五险', description: '基础社会保险保障' },
       { value: 'supplementary', label: '补充医疗', description: '额外商业医疗保险' },
       { value: 'premium', label: '高端医疗', description: '高端医疗保险，就医体验好' },
-    ];
+    ]
   }
 
   /**
@@ -214,6 +214,6 @@ export class FilterService {
       { value: 'none', label: '无', description: '无额外生育福利' },
       { value: 'basic', label: '基础', description: '基本产假和生育津贴' },
       { value: 'comprehensive', label: '完善', description: '延长产假、育儿假、哺乳室等' },
-    ];
+    ]
   }
 }

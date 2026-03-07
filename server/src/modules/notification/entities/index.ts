@@ -1,2 +1,2 @@
 // Notification Module Entities
-export * from './notification.entity';
+export * from './notification.entity'

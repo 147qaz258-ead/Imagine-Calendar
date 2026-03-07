@@ -9,18 +9,14 @@ import {
   UseGuards,
   Request,
   ParseUUIDPipe,
-} from '@nestjs/common';
-import { CognitiveService } from './cognitive.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import {
-  UpdateDimensionDto,
-  CognitiveHistoryQueryDto,
-  CompareCognitiveMapDto,
-} from './dto';
+} from '@nestjs/common'
+import { CognitiveService } from './cognitive.service'
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
+import { UpdateDimensionDto, CognitiveHistoryQueryDto, CompareCognitiveMapDto } from './dto'
 
 interface RequestWithUser {
-  user: { id: string; phone: string };
+  user: { id: string; phone: string }
 }
 
 @ApiTags('cognitive-map')
@@ -38,7 +34,7 @@ export class CognitiveController {
   @Get('users/:id/cognitive-map')
   @ApiOperation({ summary: '获取认知图谱' })
   async getCognitiveMap(@Param('id', ParseUUIDPipe) id: string) {
-    return this.cognitiveService.getCognitiveMap(id);
+    return this.cognitiveService.getCognitiveMap(id)
   }
 
   /**
@@ -48,11 +44,8 @@ export class CognitiveController {
    */
   @Put('users/:id/cognitive-map/dimensions')
   @ApiOperation({ summary: '更新认知维度' })
-  async updateDimension(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateDimensionDto,
-  ) {
-    return this.cognitiveService.updateDimension(id, dto);
+  async updateDimension(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateDimensionDto) {
+    return this.cognitiveService.updateDimension(id, dto)
   }
 
   /**
@@ -66,7 +59,7 @@ export class CognitiveController {
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: CognitiveHistoryQueryDto,
   ) {
-    return this.cognitiveService.getCognitiveHistory(id, query);
+    return this.cognitiveService.getCognitiveHistory(id, query)
   }
 
   /**
@@ -77,6 +70,6 @@ export class CognitiveController {
   @Post('cognitive-map/compare')
   @ApiOperation({ summary: '对比认知图谱' })
   async compareCognitiveMaps(@Body() dto: CompareCognitiveMapDto) {
-    return this.cognitiveService.compareCognitiveMaps(dto);
+    return this.cognitiveService.compareCognitiveMaps(dto)
   }
 }

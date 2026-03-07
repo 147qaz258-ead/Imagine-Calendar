@@ -1,2 +1,2 @@
 // Strategies 导出
-export * from './jwt.strategy';
+export * from './jwt.strategy'

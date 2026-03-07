@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { EventDetailDto } from './event-detail.dto';
+import { ApiProperty } from '@nestjs/swagger'
+import { EventDetailDto } from './event-detail.dto'
 
 /**
  * 已关注事件列表响应
@@ -7,8 +7,8 @@ import { EventDetailDto } from './event-detail.dto';
  */
 export class FollowedEventsResponseDto {
   @ApiProperty({ description: '是否成功', example: true })
-  success: boolean;
+  success: boolean
 
   @ApiProperty({ description: '已关注事件列表', type: [EventDetailDto] })
-  data: EventDetailDto[];
+  data: EventDetailDto[]
 }

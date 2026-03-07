@@ -1,5 +1,5 @@
-import { IsString, Matches, Length } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, Matches, Length } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
 
 /**
  * 登录请求 DTO
@@ -12,7 +12,7 @@ export class LoginDto {
   })
   @IsString()
   @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式错误' })
-  phone: string;
+  phone: string
 
   @ApiProperty({
     description: '验证码（6位数字）',
@@ -21,5 +21,5 @@ export class LoginDto {
   @IsString()
   @Length(6, 6, { message: '验证码必须是6位' })
   @Matches(/^\d{6}$/, { message: '验证码格式错误' })
-  code: string;
+  code: string
 }

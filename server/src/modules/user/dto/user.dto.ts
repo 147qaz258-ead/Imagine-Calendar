@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsOptional, IsString, IsNumber, IsArray } from 'class-validator'
 
 /**
  * 用户偏好 DTO（13维度）
@@ -10,79 +10,79 @@ export class UserPreferencesDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  locations?: string[];
+  locations?: string[]
 
   @ApiPropertyOptional({ description: '自我定位', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  selfPositioning?: string[];
+  selfPositioning?: string[]
 
   @ApiPropertyOptional({ description: '发展方向', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  developmentDirection?: string[];
+  developmentDirection?: string[]
 
   @ApiPropertyOptional({ description: '行业偏好', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  industries?: string[];
+  industries?: string[]
 
   @ApiPropertyOptional({ description: '平台性质', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  platformTypes?: string[];
+  platformTypes?: string[]
 
   @ApiPropertyOptional({ description: '企业规模', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  companyScales?: string[];
+  companyScales?: string[]
 
   @ApiPropertyOptional({ description: '企业文化', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  companyCulture?: string[];
+  companyCulture?: string[]
 
   @ApiPropertyOptional({ description: '领导风格', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  leadershipStyle?: string[];
+  leadershipStyle?: string[]
 
   @ApiPropertyOptional({ description: '培训项目', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  trainingPrograms?: string[];
+  trainingPrograms?: string[]
 
   @ApiPropertyOptional({ description: '加班偏好', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  overtimePreference?: string[];
+  overtimePreference?: string[]
 
   @ApiPropertyOptional({ description: '假期偏好', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  holidayPolicy?: string[];
+  holidayPolicy?: string[]
 
   @ApiPropertyOptional({ description: '医疗保障', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  medicalBenefits?: string[];
+  medicalBenefits?: string[]
 
   @ApiPropertyOptional({ description: '生育福利', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  maternityBenefits?: string[];
+  maternityBenefits?: string[]
 }
 
 /**
@@ -93,37 +93,37 @@ export class UpdateProfileDto {
   @ApiPropertyOptional({ description: '昵称' })
   @IsOptional()
   @IsString()
-  nickname?: string;
+  nickname?: string
 
   @ApiPropertyOptional({ description: '头像URL' })
   @IsOptional()
   @IsString()
-  avatar?: string;
+  avatar?: string
 
   @ApiPropertyOptional({ description: '学校' })
   @IsOptional()
   @IsString()
-  school?: string;
+  school?: string
 
   @ApiPropertyOptional({ description: '专业' })
   @IsOptional()
   @IsString()
-  major?: string;
+  major?: string
 
   @ApiPropertyOptional({ description: '年级' })
   @IsOptional()
   @IsString()
-  grade?: string;
+  grade?: string
 
   @ApiPropertyOptional({ description: '学号' })
   @IsOptional()
   @IsString()
-  studentId?: string;
+  studentId?: string
 
   @ApiPropertyOptional({ description: '毕业年份' })
   @IsOptional()
   @IsNumber()
-  graduationYear?: number;
+  graduationYear?: number
 }
 
 /**
@@ -133,7 +133,7 @@ export class UpdateProfileDto {
 export class UpdatePreferencesDto {
   @ApiProperty({ description: '用户偏好（13维度）' })
   @IsOptional()
-  preferences?: Partial<UserPreferencesDto>;
+  preferences?: Partial<UserPreferencesDto>
 }
 
 /**
@@ -144,22 +144,22 @@ export class SchoolQueryDto {
   @ApiPropertyOptional({ description: '搜索关键词' })
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string
 
   @ApiPropertyOptional({ description: '省份筛选' })
   @IsOptional()
   @IsString()
-  province?: string;
+  province?: string
 
   @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
   @IsNumber()
-  page?: number;
+  page?: number
 
   @ApiPropertyOptional({ description: '每页数量', default: 20 })
   @IsOptional()
   @IsNumber()
-  pageSize?: number;
+  pageSize?: number
 }
 
 /**
@@ -170,20 +170,20 @@ export class MajorQueryDto {
   @ApiPropertyOptional({ description: '搜索关键词' })
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string
 
   @ApiPropertyOptional({ description: '类别筛选' })
   @IsOptional()
   @IsString()
-  category?: string;
+  category?: string
 
   @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
   @IsNumber()
-  page?: number;
+  page?: number
 
   @ApiPropertyOptional({ description: '每页数量', default: 20 })
   @IsOptional()
   @IsNumber()
-  pageSize?: number;
+  pageSize?: number
 }

@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { SendResult, ISmsService } from '../interfaces/sms.interface';
+import { Injectable, Logger } from '@nestjs/common'
+import { SendResult, ISmsService } from '../interfaces/sms.interface'
 
 /**
  * 阿里云短信服务
@@ -7,7 +7,7 @@ import { SendResult, ISmsService } from '../interfaces/sms.interface';
  */
 @Injectable()
 export class AliyunSmsService implements ISmsService {
-  private readonly logger = new Logger(AliyunSmsService.name);
+  private readonly logger = new Logger(AliyunSmsService.name)
 
   // 配置项（从环境变量读取）
   // private accessKeyId: string;
@@ -27,7 +27,7 @@ export class AliyunSmsService implements ISmsService {
     //   eventReminder: process.env.ALIYUN_SMS_TEMPLATE_EVENT_REMINDER,
     // };
 
-    this.logger.warn('AliyunSmsService is not fully implemented. Using mock behavior.');
+    this.logger.warn('AliyunSmsService is not fully implemented. Using mock behavior.')
   }
 
   /**
@@ -43,47 +43,47 @@ export class AliyunSmsService implements ISmsService {
     // });
     // const response = await this.client.sendSms(request);
 
-    this.logger.log(`[Aliyun SMS] 发送验证码到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Aliyun SMS] 发送验证码到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Aliyun SMS service not implemented',
-    };
+    }
   }
 
   /**
    * 发送圆桌匹配成功通知
    */
   async sendRoundtableMatched(phone: string, time: string): Promise<SendResult> {
-    this.logger.log(`[Aliyun SMS] 发送圆桌匹配通知到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Aliyun SMS] 发送圆桌匹配通知到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Aliyun SMS service not implemented',
-    };
+    }
   }
 
   /**
    * 发送圆桌提醒
    */
   async sendRoundtableReminder(phone: string): Promise<SendResult> {
-    this.logger.log(`[Aliyun SMS] 发送圆桌提醒到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Aliyun SMS] 发送圆桌提醒到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Aliyun SMS service not implemented',
-    };
+    }
   }
 
   /**
    * 发送活动提醒
    */
   async sendEventReminder(phone: string, eventName: string, time: string): Promise<SendResult> {
-    this.logger.log(`[Aliyun SMS] 发送活动提醒到 ${phone} (Not Implemented)`);
+    this.logger.log(`[Aliyun SMS] 发送活动提醒到 ${phone} (Not Implemented)`)
 
     return {
       success: false,
       error: 'Aliyun SMS service not implemented',
-    };
+    }
   }
 }

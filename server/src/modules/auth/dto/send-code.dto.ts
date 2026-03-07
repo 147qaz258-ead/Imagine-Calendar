@@ -1,5 +1,5 @@
-import { IsString, IsIn, Matches, Length } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsIn, Matches, Length } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
 
 /**
  * 发送验证码请求 DTO
@@ -12,7 +12,7 @@ export class SendCodeDto {
   })
   @IsString()
   @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式错误' })
-  phone: string;
+  phone: string
 
   @ApiProperty({
     description: '场景',
@@ -21,5 +21,5 @@ export class SendCodeDto {
   })
   @IsString()
   @IsIn(['login', 'register'])
-  scene: 'login' | 'register';
+  scene: 'login' | 'register'
 }

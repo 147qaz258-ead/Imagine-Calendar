@@ -6,20 +6,20 @@ import {
   UpdateDateColumn,
   OneToMany,
   Index,
-} from 'typeorm';
-import { RoundTableParticipant } from './roundtable-participant.entity';
-import { ChatMessage } from './chat-message.entity';
+} from 'typeorm'
+import { RoundTableParticipant } from './roundtable-participant.entity'
+import { ChatMessage } from './chat-message.entity'
 
 /**
  * 圆桌状态枚举
  * 对应 API-CONTRACT.md RoundTableStatus
  */
 export enum RoundTableStatus {
-  MATCHING = 'matching',         // 匹配中
-  READY = 'ready',               // 人齐待开始
-  IN_PROGRESS = 'in_progress',   // 进行中
-  COMPLETED = 'completed',       // 已完成
-  CANCELLED = 'cancelled',       // 已取消
+  MATCHING = 'matching', // 匹配中
+  READY = 'ready', // 人齐待开始
+  IN_PROGRESS = 'in_progress', // 进行中
+  COMPLETED = 'completed', // 已完成
+  CANCELLED = 'cancelled', // 已取消
 }
 
 /**
@@ -29,23 +29,23 @@ export enum RoundTableStatus {
 @Entity('roundtables')
 export class RoundTable {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Column({ type: 'varchar', length: 200, nullable: true })
-  topic: string;
+  topic: string
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description: string
 
   @Index()
   @Column({ type: 'timestamptz', nullable: true })
-  scheduledAt: Date;
+  scheduledAt: Date
 
   @Column({ type: 'int', default: 120, name: 'duration_minutes' })
-  duration: number;
+  duration: number
 
   @Column({ type: 'int', default: 6, name: 'max_participants' })
-  maxParticipants: number;
+  maxParticipants: number
 
   @Index()
   @Column({
@@ -53,24 +53,24 @@ export class RoundTable {
     enum: RoundTableStatus,
     default: RoundTableStatus.MATCHING,
   })
-  status: RoundTableStatus;
+  status: RoundTableStatus
 
-  @Column({ type: 'simple-array', nullable: true })
-  questions: string[];
+  @Column({ type: 'text', array: true, nullable: true })
+  questions: string[]
 
   @Column({ type: 'text', nullable: true })
-  summary: string;
+  summary: string
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt: Date
 
   // 关联关系
   @OneToMany(() => RoundTableParticipant, (participant) => participant.roundTable)
-  participants: RoundTableParticipant[];
+  participants: RoundTableParticipant[]
 
   @OneToMany(() => ChatMessage, (message) => message.roundTable)
-  messages: ChatMessage[];
+  messages: ChatMessage[]
 }

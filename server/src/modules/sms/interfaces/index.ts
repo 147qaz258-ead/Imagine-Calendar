@@ -1,1 +1,1 @@
-export * from './sms.interface';
+export * from './sms.interface'

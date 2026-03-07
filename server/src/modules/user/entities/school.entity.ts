@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm'
 
 /**
  * 学校实体
@@ -7,21 +7,21 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 
 @Entity('schools')
 export class School {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Index()
   @Column({ type: 'varchar', length: 100, unique: true })
-  name: string;
+  name: string
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  province: string;
+  province: string
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  city: string;
+  city: string
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  level: string;
+  level: string
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  createdAt: Date;
+  createdAt: Date
 }

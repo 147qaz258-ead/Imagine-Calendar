@@ -1,1 +1,1 @@
-export * from './cognitive-map.entity';
+export * from './cognitive-map.entity'

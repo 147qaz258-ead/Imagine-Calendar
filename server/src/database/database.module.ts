@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 
 // 导入所有实体
-import { User, UserProfile, School, Major, VerificationCode } from '../modules/user/entities';
-import { Event, UserEvent } from '../modules/event/entities';
-import { RoundTable, RoundTableParticipant, ChatMessage } from '../modules/roundtable/entities';
-import { CognitiveMap } from '../modules/cognitive/entities';
-import { Notification } from '../modules/notification/entities';
+import { User, UserProfile, School, Major, VerificationCode } from '../modules/user/entities'
+import { Event, UserEvent } from '../modules/event/entities'
+import { RoundTable, RoundTableParticipant, ChatMessage } from '../modules/roundtable/entities'
+import { CognitiveMap } from '../modules/cognitive/entities'
+import { Notification } from '../modules/notification/entities'
 
 /**
  * 数据库模块
@@ -19,8 +19,8 @@ import { Notification } from '../modules/notification/entities';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const isProduction = configService.get('NODE_ENV') === 'production';
-        const databaseUrl = configService.get('DATABASE_URL');
+        const isProduction = configService.get('NODE_ENV') === 'production'
+        const databaseUrl = configService.get('DATABASE_URL')
 
         // 如果提供了 DATABASE_URL（云部署），优先使用
         if (databaseUrl) {
@@ -44,7 +44,7 @@ import { Notification } from '../modules/notification/entities';
             ],
             synchronize: true,
             logging: !isProduction,
-          };
+          }
         }
 
         // 否则使用分离的配置（本地开发）
@@ -71,7 +71,7 @@ import { Notification } from '../modules/notification/entities';
           ],
           synchronize: true,
           logging: !isProduction,
-        };
+        }
       },
       inject: [ConfigService],
     }),

@@ -7,11 +7,9 @@ interface User {
   [key: string]: unknown
 }
 
-export const CurrentUser = createParamDecorator(
-  (data: string, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest<Request>()
-    const user = request['user'] as User | undefined
+export const CurrentUser = createParamDecorator((data: string, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest<Request>()
+  const user = request['user'] as User | undefined
 
-    return data ? user?.[data] : user
-  },
-)
+  return data ? user?.[data] : user
+})

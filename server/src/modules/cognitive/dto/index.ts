@@ -1,1 +1,1 @@
-export * from './cognitive.dto';
+export * from './cognitive.dto'

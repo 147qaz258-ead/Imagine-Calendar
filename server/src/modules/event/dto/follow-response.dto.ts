@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger'
 
 /**
  * 关注事件响应
@@ -7,14 +7,14 @@ import { ApiProperty } from '@nestjs/swagger';
  */
 export class FollowResponseDto {
   @ApiProperty({ description: '是否成功', example: true })
-  success: boolean;
+  success: boolean
 
   @ApiProperty({
     description: '响应数据',
     example: { followed: true, followerCount: 42 },
   })
   data: {
-    followed: boolean;
-    followerCount: number;
-  };
+    followed: boolean
+    followerCount: number
+  }
 }

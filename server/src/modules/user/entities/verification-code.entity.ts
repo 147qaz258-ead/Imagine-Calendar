@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm'
 
 /**
  * 验证码实体
@@ -7,21 +7,21 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 
 @Entity('verification_codes')
 export class VerificationCode {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Index()
   @Column({ type: 'varchar', length: 11 })
-  phone: string;
+  phone: string
 
   @Column({ type: 'varchar', length: 6 })
-  code: string;
+  code: string
 
   @Column({ type: 'timestamptz', name: 'expires_at' })
-  expiresAt: Date;
+  expiresAt: Date
 
   @Column({ type: 'boolean', default: false })
-  used: boolean;
+  used: boolean
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
-  createdAt: Date;
+  createdAt: Date
 }

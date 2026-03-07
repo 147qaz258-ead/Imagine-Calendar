@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger'
 import {
   IsString,
   IsNumber,
@@ -8,8 +8,8 @@ import {
   Max,
   IsEnum,
   IsDateString,
-} from 'class-validator';
-import { KnowledgeSourceType } from '../entities/cognitive-map.entity';
+} from 'class-validator'
+import { KnowledgeSourceType } from '../entities/cognitive-map.entity'
 
 /**
  * 知识来源 DTO
@@ -22,21 +22,21 @@ export class KnowledgeSourceDto {
     example: 'self_exploration',
   })
   @IsEnum(KnowledgeSourceType)
-  type: KnowledgeSourceType;
+  type: KnowledgeSourceType
 
   @ApiProperty({ description: '描述' })
   @IsString()
-  description: string;
+  description: string
 
   @ApiProperty({ description: '深度 1-3', minimum: 1, maximum: 3 })
   @IsNumber()
   @Min(1)
   @Max(3)
-  depth: number;
+  depth: number
 
   @ApiProperty({ description: '贡献时间 ISO 8601' })
   @IsDateString()
-  contributedAt: string;
+  contributedAt: string
 }
 
 /**
@@ -46,17 +46,17 @@ export class KnowledgeSourceDto {
 export class CognitiveDimensionDto {
   @ApiProperty({ description: '维度名称' })
   @IsString()
-  name: string;
+  name: string
 
   @ApiProperty({ description: '分数 0-100', minimum: 0, maximum: 100 })
   @IsNumber()
   @Min(0)
   @Max(100)
-  score: number;
+  score: number
 
   @ApiProperty({ type: [KnowledgeSourceDto], description: '知识来源' })
   @IsArray()
-  knowledgeSource: KnowledgeSourceDto[];
+  knowledgeSource: KnowledgeSourceDto[]
 }
 
 /**
@@ -67,16 +67,16 @@ export class CognitiveDimensionDto {
 export class UpdateDimensionDto {
   @ApiProperty({ description: '维度名称' })
   @IsString()
-  dimension: string;
+  dimension: string
 
   @ApiProperty({ description: '分数 0-100', minimum: 0, maximum: 100 })
   @IsNumber()
   @Min(0)
   @Max(100)
-  score: number;
+  score: number
 
   @ApiProperty({ type: KnowledgeSourceDto, description: '知识来源' })
-  knowledgeSource: KnowledgeSourceDto;
+  knowledgeSource: KnowledgeSourceDto
 }
 
 /**
@@ -88,12 +88,12 @@ export class CognitiveHistoryQueryDto {
   @ApiProperty({ required: false, description: '开始日期 ISO 8601' })
   @IsOptional()
   @IsDateString()
-  startDate?: string;
+  startDate?: string
 
   @ApiProperty({ required: false, description: '结束日期 ISO 8601' })
   @IsOptional()
   @IsDateString()
-  endDate?: string;
+  endDate?: string
 }
 
 /**
@@ -109,5 +109,5 @@ export class CompareCognitiveMapDto {
   })
   @IsArray()
   @IsString({ each: true })
-  userIds: string[];
+  userIds: string[]
 }

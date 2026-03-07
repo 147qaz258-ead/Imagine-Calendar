@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  Logger,
-} from '@nestjs/common'
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import { Request, Response } from 'express'
@@ -22,7 +16,9 @@ export class LoggingInterceptor implements NestInterceptor {
     const startTime = Date.now()
 
     // 生成追踪 ID
-    const traceId = request.headers['x-trace-id'] || `trace-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const traceId =
+      request.headers['x-trace-id'] ||
+      `trace-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
     // 记录请求
     this.logger.log(`[${traceId}] --> ${method} ${url}`)
@@ -38,7 +34,9 @@ export class LoggingInterceptor implements NestInterceptor {
         },
         error: (error) => {
           const duration = Date.now() - startTime
-          this.logger.error(`[${traceId}] <-- ${method} ${url} ERROR ${duration}ms: ${error.message}`)
+          this.logger.error(
+            `[${traceId}] <-- ${method} ${url} ERROR ${duration}ms: ${error.message}`,
+          )
         },
       }),
     )

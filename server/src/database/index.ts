@@ -1,2 +1,2 @@
 // Database exports
-export * from './database.module';
+export * from './database.module'

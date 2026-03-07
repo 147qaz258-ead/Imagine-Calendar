@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
 
 /**
  * 刷新 Token 请求 DTO
@@ -12,5 +12,5 @@ export class RefreshTokenDto {
   })
   @IsString()
   @IsNotEmpty({ message: 'Token不能为空' })
-  token: string;
+  token: string
 }

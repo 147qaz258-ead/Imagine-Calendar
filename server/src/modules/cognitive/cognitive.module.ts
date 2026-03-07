@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { CognitiveMap } from './entities/cognitive-map.entity';
-import { User } from '../user/entities/user.entity';
-import { CognitiveController } from './cognitive.controller';
-import { CognitiveService } from './cognitive.service';
-import { AuthModule } from '../auth/auth.module';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { CognitiveMap } from './entities/cognitive-map.entity'
+import { User } from '../user/entities/user.entity'
+import { CognitiveController } from './cognitive.controller'
+import { CognitiveService } from './cognitive.service'
+import { AuthModule } from '../auth/auth.module'
 
 /**
  * 认知图谱模块

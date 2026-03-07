@@ -1,7 +1,7 @@
-import { IsInt, Min, Max, IsOptional, IsEnum, IsArray } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { CompanyType } from '../entities/event.entity';
+import { IsInt, Min, Max, IsOptional, IsEnum, IsArray } from 'class-validator'
+import { ApiPropertyOptional } from '@nestjs/swagger'
+import { Type } from 'class-transformer'
+import { CompanyType } from '../entities/event.entity'
 
 /**
  * 日历查询参数
@@ -13,14 +13,14 @@ export class CalendarQueryDto {
   @IsInt()
   @Min(2020)
   @Max(2100)
-  year: number;
+  year: number
 
   @ApiPropertyOptional({ description: '月份 1-12', example: 3 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(12)
-  month: number;
+  month: number
 
   @ApiPropertyOptional({
     description: '企业类型筛选',
@@ -29,7 +29,7 @@ export class CalendarQueryDto {
   })
   @IsOptional()
   @IsEnum(CompanyType)
-  companyType?: CompanyType;
+  companyType?: CompanyType
 
   @ApiPropertyOptional({
     description: '行业筛选',
@@ -39,5 +39,5 @@ export class CalendarQueryDto {
   @IsOptional()
   @IsArray()
   @IsEnum(['互联网', '金融', '制造业', '教育', '医疗', '其他'], { each: true })
-  industries?: string[];
+  industries?: string[]
 }
