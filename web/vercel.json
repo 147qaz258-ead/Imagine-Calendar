@@ -7,15 +7,10 @@
     {
       "source": "/socket.io/:path*",
       "destination": "https://career-calendar-server.onrender.com/socket.io/:path*"
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api|socket.io).*)",
+      "destination": "/index.html"
     }
   ]
 }
