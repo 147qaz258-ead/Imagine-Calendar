@@ -4,7 +4,7 @@
   "private": true,
   "description": "畅选日历 - 职业规划日历平台",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "[ \"$NODE_ENV\" != \"production\" ] && husky || true",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "test": "pnpm -r test",
