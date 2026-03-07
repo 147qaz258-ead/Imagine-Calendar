@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard'
 import { DatabaseModule } from './database/database.module'
+import { AppController } from './app.controller'
 import { AuthModule } from './modules/auth'
 import { UserModule } from './modules/user/user.module'
 import { EventModule } from './modules/event/event.module'
@@ -71,6 +72,7 @@ import * as Joi from 'joi'
     CognitiveModule,
     FilterModule,
   ],
+  controllers: [AppController],
   providers: [
     // 全局 JWT 认证守卫
     {
