@@ -3,14 +3,9 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "installCommand": "pnpm install",
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://career-calendar-server.onrender.com/api/:path*"
-    },
-    {
-      "source": "/socket.io/:path*",
-      "destination": "https://career-calendar-server.onrender.com/socket.io/:path*"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
     }
-  ]
+  }
 }
