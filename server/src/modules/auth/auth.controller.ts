@@ -62,12 +62,7 @@ export class AuthController {
     },
   })
   async sendCode(@Body() dto: SendCodeDto) {
-    const result = await this.authService.sendCode(dto)
-    return {
-      success: true,
-      message: result.message,
-      data: { expiresIn: result.expiresIn },
-    }
+    return this.authService.sendCode(dto)
   }
 
   /**

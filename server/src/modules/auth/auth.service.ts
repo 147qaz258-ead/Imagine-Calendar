@@ -98,7 +98,11 @@ export class AuthService {
    */
   async sendCode(
     dto: SendCodeDto,
-  ): Promise<{ success: boolean; message: string; expiresIn: number }> {
+  ): Promise<{
+    success: boolean
+    message: string
+    data: { expiresIn: number; code?: string }
+  }> {
     const { phone, scene } = dto
 
     // 检查发送频率限制
