@@ -19,7 +19,7 @@ import { AuthModule } from '../auth/auth.module'
     TypeOrmModule.forFeature([RoundTable, RoundTableParticipant, ChatMessage, User, UserProfile]),
     forwardRef(() => CognitiveModule),
     forwardRef(() => CognitiveBoundaryModule),
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [RoundTableController],
   providers: [RoundTableService, RoundTableGateway],

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { CognitiveMap, CognitiveVersion } from './entities'
 import { User } from '../user/entities/user.entity'
@@ -12,7 +12,7 @@ import { AuthModule } from '../auth/auth.module'
  * 对应 API-CONTRACT.md 第 7 章
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([CognitiveMap, CognitiveVersion, User]), AuthModule],
+  imports: [TypeOrmModule.forFeature([CognitiveMap, CognitiveVersion, User]), forwardRef(() => AuthModule)],
   controllers: [CognitiveController],
   providers: [CognitiveService],
   exports: [CognitiveService],

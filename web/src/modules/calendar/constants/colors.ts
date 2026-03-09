@@ -3,7 +3,7 @@
  * 为不同企业类型设置不同的显示颜色 - 单一数据源
  */
 
-import { CompanyType } from '../types'
+import { CompanyType } from './company-type'
 
 // 企业类型颜色映射（单一数据源）
 export const CompanyTypeColors: Record<CompanyType, { bg: string; text: string; border: string }> = {

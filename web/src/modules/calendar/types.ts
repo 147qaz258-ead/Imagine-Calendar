@@ -3,16 +3,12 @@
  * 根据 API-CONTRACT.md 唯一可信源定义
  */
 
-// 企业类型枚举
-export enum CompanyType {
-  SOE = 'soe',           // 国企（灰色）
-  FOREIGN = 'foreign',   // 外企（紫色）
-  PRIVATE = 'private',   // 民企（黄色）
-  STARTUP = 'startup',   // 创业公司（橙色）
-  GOVERNMENT = 'government', // 事业单位（蓝色）
-}
+import { CompanyType } from './constants/company-type'
 
-// 企业类型颜色配置 - 从 constants/colors.ts 导入（单一数据源）
+// 重新导出企业类型枚举
+export { CompanyType } from './constants/company-type'
+
+// 企业类型颜色配置
 export { CompanyTypeColors, DEFAULT_COMPANY_COLOR, getCompanyTypeColor } from './constants/colors'
 
 // 企业类型中文标签
