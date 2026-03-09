@@ -24,13 +24,25 @@ import { RoundTableService } from '../roundtable/roundtable.service'
 type UserResponse = Omit<User, 'password'>
 
 /**
+ * 内存缓存项
+ */
+interface MemoryCacheItem {
+  value: string
+  expiresAt: number
+}
+
+/**
  * 认证服务
  * 实现验证码发送、登录验证、JWT Token 管理
  */
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name)
-  private redis: Redis
+  private redis: Redis | null = null
+  private redisAvailable = false
+
+  // 内存缓存（Redis 不可用时的降级方案）
+  private memoryCache = new Map<string, MemoryCacheItem>()
 
   // Redis 键前缀
   private readonly CODE_PREFIX = 'auth:code:'
@@ -62,45 +74,177 @@ export class AuthService {
     private roundTableService: RoundTableService,
   ) {
     // 初始化 Redis 连接 - 支持 Upstash 云部署
+    this.initRedis()
+  }
+
+  /**
+   * 初始化 Redis 连接
+   */
+  private initRedis() {
     const redisUrl = this.configService.get<string>('REDIS_URL')
+    const redisHost = this.configService.get<string>('REDIS_HOST')
+
+    // 如果没有配置 Redis，使用内存缓存
+    if (!redisUrl && !redisHost) {
+      this.logger.warn('Redis not configured, using memory cache for verification codes')
+      this.redisAvailable = false
+      return
+    }
 
     const redisOptions = {
-      connectTimeout: 10000, // 连接超时 10 秒
-      commandTimeout: 5000, // 命令超时 5 秒
-      maxRetriesPerRequest: 3, // 每个命令最多重试 3 次
+      connectTimeout: 5000, // 连接超时 5 秒
+      commandTimeout: 3000, // 命令超时 3 秒
+      maxRetriesPerRequest: 2, // 每个命令最多重试 2 次
       retryStrategy: (times: number) => {
-        if (times > 3) {
-          this.logger.error('Redis connection failed after 3 retries')
+        if (times > 2) {
+          this.logger.error('Redis connection failed after 2 retries, falling back to memory cache')
+          this.redisAvailable = false
           return null // 停止重试
         }
-        return Math.min(times * 100, 2000) // 重试延迟
+        return Math.min(times * 100, 1000) // 重试延迟
       },
     }
 
-    if (redisUrl) {
-      // 云部署使用 URL 连接（Upstash 需要 TLS）
-      this.redis = new Redis(redisUrl, {
-        ...redisOptions,
-        tls: {
-          rejectUnauthorized: false,
-        },
+    try {
+      if (redisUrl) {
+        // 云部署使用 URL 连接（Upstash 需要 TLS）
+        this.redis = new Redis(redisUrl, {
+          ...redisOptions,
+          tls: {
+            rejectUnauthorized: false,
+          },
+        })
+      } else {
+        // 本地开发使用分离配置
+        this.redis = new Redis({
+          host: redisHost,
+          port: this.configService.get<number>('REDIS_PORT', 6379),
+          ...redisOptions,
+        })
+      }
+
+      this.redis.on('connect', () => {
+        this.logger.log('Redis connected successfully')
+        this.redisAvailable = true
       })
-    } else {
-      // 本地开发使用分离配置
-      this.redis = new Redis({
-        host: this.configService.get<string>('REDIS_HOST', 'localhost'),
-        port: this.configService.get<number>('REDIS_PORT', 6379),
-        ...redisOptions,
+
+      this.redis.on('error', (err) => {
+        this.logger.error('Redis connection error:', err.message)
+        this.redisAvailable = false
       })
+
+      this.redis.on('close', () => {
+        this.logger.warn('Redis connection closed')
+        this.redisAvailable = false
+      })
+    } catch (error) {
+      this.logger.error('Failed to initialize Redis:', error)
+      this.redisAvailable = false
     }
+  }
 
-    this.redis.on('connect', () => {
-      this.logger.log('Redis connected successfully')
+  /**
+   * 设置缓存值（Redis 或内存）
+   */
+  private async setCache(key: string, value: string, ttl: number): Promise<void> {
+    if (this.redisAvailable && this.redis) {
+      try {
+        await this.redis.setex(key, ttl, value)
+        return
+      } catch {
+        this.logger.warn('Redis setex failed, falling back to memory cache')
+      }
+    }
+    // 内存缓存降级
+    this.memoryCache.set(key, {
+      value,
+      expiresAt: Date.now() + ttl * 1000,
     })
+  }
 
-    this.redis.on('error', (err) => {
-      this.logger.error('Redis connection error:', err.message)
+  /**
+   * 获取缓存值（Redis 或内存）
+   */
+  private async getCache(key: string): Promise<string | null> {
+    if (this.redisAvailable && this.redis) {
+      try {
+        const value = await Promise.race([
+          this.redis.get(key),
+          new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('Redis timeout')), 3000),
+          ),
+        ])
+        return value
+      } catch {
+        this.logger.warn('Redis get failed, falling back to memory cache')
+      }
+    }
+    // 内存缓存降级
+    const item = this.memoryCache.get(key)
+    if (item && item.expiresAt > Date.now()) {
+      return item.value
+    }
+    if (item) {
+      this.memoryCache.delete(key) // 清除过期项
+    }
+    return null
+  }
+
+  /**
+   * 删除缓存值（Redis 或内存）
+   */
+  private async deleteCache(key: string): Promise<void> {
+    if (this.redisAvailable && this.redis) {
+      try {
+        await this.redis.del(key)
+      } catch {
+        this.logger.warn('Redis del failed')
+      }
+    }
+    this.memoryCache.delete(key)
+  }
+
+  /**
+   * 增加计数器（Redis 或内存）
+   */
+  private async incrementCache(key: string, ttl: number): Promise<number> {
+    if (this.redisAvailable && this.redis) {
+      try {
+        const value = await this.redis.incr(key)
+        if (value === 1) {
+          await this.redis.expire(key, ttl)
+        }
+        return value
+      } catch {
+        this.logger.warn('Redis incr failed, falling back to memory cache')
+      }
+    }
+    // 内存缓存降级 - 简化实现
+    const item = this.memoryCache.get(key)
+    const newValue = item ? parseInt(item.value) + 1 : 1
+    this.memoryCache.set(key, {
+      value: String(newValue),
+      expiresAt: Date.now() + ttl * 1000,
     })
+    return newValue
+  }
+
+  /**
+   * 获取 TTL（Redis 或内存）
+   */
+  private async getTtl(key: string): Promise<number> {
+    if (this.redisAvailable && this.redis) {
+      try {
+        return await this.redis.ttl(key)
+      } catch {
+        this.logger.warn('Redis ttl failed')
+      }
+    }
+    const item = this.memoryCache.get(key)
+    if (item && item.expiresAt > Date.now()) {
+      return Math.floor((item.expiresAt - Date.now()) / 1000)
+    }
+    return -1
   }
 
   /**
@@ -108,12 +252,10 @@ export class AuthService {
    * 1. 校验手机号格式（DTO 层已完成）
    * 2. 检查发送频率限制
    * 3. 生成验证码
-   * 4. 存储到 Redis
+   * 4. 存储到缓存
    * 5. 调用短信服务发送（Mock）
    */
-  async sendCode(
-    dto: SendCodeDto,
-  ): Promise<{
+  async sendCode(dto: SendCodeDto): Promise<{
     success: boolean
     message: string
     data: { expiresIn: number; code?: string }
@@ -122,9 +264,9 @@ export class AuthService {
 
     // 检查发送频率限制
     const rateLimitKey = this.RATE_LIMIT_PREFIX + phone
-    const rateLimited = await this.redis.get(rateLimitKey)
+    const rateLimited = await this.getCache(rateLimitKey)
     if (rateLimited) {
-      const ttl = await this.redis.ttl(rateLimitKey)
+      const ttl = await this.getTtl(rateLimitKey)
       throw new BadRequestException({
         code: 'AUTH_CODE_TOO_FREQUENT',
         message: `发送过于频繁，请${ttl}秒后重试`,
@@ -134,12 +276,12 @@ export class AuthService {
     // 生成 6 位数字验证码
     const code = this.generateCode()
 
-    // 存储验证码到 Redis
+    // 存储验证码到缓存
     const codeKey = this.CODE_PREFIX + phone
-    await this.redis.setex(codeKey, this.CODE_EXPIRY, code)
+    await this.setCache(codeKey, code, this.CODE_EXPIRY)
 
     // 设置发送频率限制
-    await this.redis.setex(rateLimitKey, this.RATE_LIMIT_SECONDS, '1')
+    await this.setCache(rateLimitKey, '1', this.RATE_LIMIT_SECONDS)
 
     // 存储到数据库（用于审计）
     const verificationCode = this.codeRepository.create({
@@ -189,9 +331,9 @@ export class AuthService {
 
     // 检查尝试次数限制
     const attemptKey = this.ATTEMPT_PREFIX + phone
-    const attempts = await this.redis.get(attemptKey)
+    const attempts = await this.getCache(attemptKey)
     if (attempts && parseInt(attempts) >= this.MAX_ATTEMPTS) {
-      const ttl = await this.redis.ttl(attemptKey)
+      const ttl = await this.getTtl(attemptKey)
       throw new BadRequestException({
         code: 'TOO_MANY_ATTEMPTS',
         message: `尝试次数过多，请${ttl}秒后重试`,
@@ -200,7 +342,7 @@ export class AuthService {
 
     // 验证验证码
     const codeKey = this.CODE_PREFIX + phone
-    const storedCode = await this.redis.get(codeKey)
+    const storedCode = await this.getCache(codeKey)
 
     if (!storedCode) {
       throw new BadRequestException({
@@ -211,10 +353,7 @@ export class AuthService {
 
     if (storedCode !== code) {
       // 增加尝试次数
-      const newAttempts = await this.redis.incr(attemptKey)
-      if (newAttempts === 1) {
-        await this.redis.expire(attemptKey, this.ATTEMPT_LOCK_SECONDS)
-      }
+      const newAttempts = await this.incrementCache(attemptKey, this.ATTEMPT_LOCK_SECONDS)
 
       throw new BadRequestException({
         code: 'AUTH_CODE_INVALID',
@@ -223,8 +362,8 @@ export class AuthService {
     }
 
     // 验证成功，删除验证码和尝试记录
-    await this.redis.del(codeKey)
-    await this.redis.del(attemptKey)
+    await this.deleteCache(codeKey)
+    await this.deleteCache(attemptKey)
 
     // 查找或创建用户
     let user = await this.userRepository.findOne({
@@ -287,7 +426,7 @@ export class AuthService {
 
     // 验证验证码
     const codeKey = this.CODE_PREFIX + phone
-    const storedCode = await this.redis.get(codeKey)
+    const storedCode = await this.getCache(codeKey)
 
     if (!storedCode) {
       throw new BadRequestException({
@@ -304,7 +443,7 @@ export class AuthService {
     }
 
     // 验证成功，删除验证码
-    await this.redis.del(codeKey)
+    await this.deleteCache(codeKey)
 
     // 检查用户是否已存在
     const existingUser = await this.userRepository.findOne({
@@ -405,9 +544,9 @@ export class AuthService {
 
     // 检查尝试次数限制
     const attemptKey = this.PASSWORD_ATTEMPT_PREFIX + phone
-    const attempts = await this.redis.get(attemptKey)
+    const attempts = await this.getCache(attemptKey)
     if (attempts && parseInt(attempts) >= this.MAX_PASSWORD_ATTEMPTS) {
-      const ttl = await this.redis.ttl(attemptKey)
+      const ttl = await this.getTtl(attemptKey)
       throw new BadRequestException({
         code: 'TOO_MANY_ATTEMPTS',
         message: `密码错误次数过多，请${ttl}秒后重试`,
@@ -442,10 +581,7 @@ export class AuthService {
 
     if (!isPasswordValid) {
       // 增加尝试次数
-      const newAttempts = await this.redis.incr(attemptKey)
-      if (newAttempts === 1) {
-        await this.redis.expire(attemptKey, this.PASSWORD_LOCK_SECONDS)
-      }
+      const newAttempts = await this.incrementCache(attemptKey, this.PASSWORD_LOCK_SECONDS)
 
       throw new BadRequestException({
         code: 'AUTH_PASSWORD_INVALID',
@@ -454,7 +590,7 @@ export class AuthService {
     }
 
     // 验证成功，删除尝试记录
-    await this.redis.del(attemptKey)
+    await this.deleteCache(attemptKey)
 
     // 更新登录时间
     user.lastLoginAt = new Date()
@@ -489,7 +625,7 @@ export class AuthService {
     const { token } = dto
 
     // 检查是否在黑名单中
-    const blacklisted = await this.redis.get(this.BLACKLIST_PREFIX + token)
+    const blacklisted = await this.getCache(this.BLACKLIST_PREFIX + token)
     if (blacklisted) {
       throw new UnauthorizedException({
         code: 'AUTH_TOKEN_INVALID',
@@ -563,7 +699,7 @@ export class AuthService {
         const ttl = payload.exp - Math.floor(Date.now() / 1000)
         if (ttl > 0) {
           // 将 Token 加入黑名单，过期时间为 Token 剩余有效期
-          await this.redis.setex(this.BLACKLIST_PREFIX + token, ttl, '1')
+          await this.setCache(this.BLACKLIST_PREFIX + token, '1', ttl)
         }
       }
     } catch (error) {
