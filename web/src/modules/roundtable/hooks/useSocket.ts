@@ -1,6 +1,6 @@
 /**
  * WebSocket 连接 Hook
- * 管理圆桌 WebSocket 连接和事件处理
+ * 管理群组 WebSocket 连接和事件处理
  */
 import { useEffect, useCallback, useRef } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -47,7 +47,7 @@ interface UseSocketReturn {
 }
 
 /**
- * 圆桌 WebSocket Hook
+ * 群组 WebSocket Hook
  */
 export function useSocket({
   roundTableId,
@@ -77,21 +77,21 @@ export function useSocket({
     const unsubConnected = socket.on<ConnectedEvent>('connected', (event) => {
       dispatch(setConnected(true))
       dispatch(setParticipants(event.data.participants))
-      dispatch(addSystemMessage('已连接到圆桌'))
+      dispatch(addSystemMessage('已连接到群组'))
     })
     unsubscribersRef.current.push(unsubConnected)
 
     // 用户加入
     const unsubUserJoined = socket.on<UserJoinedEvent>('user_joined', (event) => {
       dispatch(userJoined(event.data.user))
-      dispatch(addSystemMessage(`${event.data.user.nickname} 加入了圆桌`))
+      dispatch(addSystemMessage(`${event.data.user.nickname} 加入了群组`))
     })
     unsubscribersRef.current.push(unsubUserJoined)
 
     // 用户离开
     const unsubUserLeft = socket.on<UserLeftEvent>('user_left', (event) => {
       dispatch(userLeft(event.data.userId))
-      dispatch(addSystemMessage('有人离开了圆桌'))
+      dispatch(addSystemMessage('有人离开了群组'))
     })
     unsubscribersRef.current.push(unsubUserLeft)
 
@@ -117,24 +117,24 @@ export function useSocket({
     })
     unsubscribersRef.current.push(unsubReceiveMessage)
 
-    // 圆桌开始
+    // 群组开始
     const unsubRoundTableStart = socket.on<RoundTableStartEvent>('round_table_start', (event) => {
       dispatch(roundTableStart({
         startedAt: event.data.startedAt,
         duration: event.data.duration,
       }))
-      dispatch(addSystemMessage('圆桌讨论已开始'))
+      dispatch(addSystemMessage('群组讨论已开始'))
     })
     unsubscribersRef.current.push(unsubRoundTableStart)
 
-    // 圆桌结束
+    // 群组结束
     const unsubRoundTableEnd = socket.on<RoundTableEndEvent>('round_table_end', (event) => {
       dispatch(roundTableEnd({
         endedAt: event.data.endedAt,
         duration: event.data.duration,
         summary: event.data.summary,
       }))
-      dispatch(addSystemMessage('圆桌讨论已结束'))
+      dispatch(addSystemMessage('群组讨论已结束'))
     })
     unsubscribersRef.current.push(unsubRoundTableEnd)
 
@@ -164,7 +164,7 @@ export function useSocket({
     }
 
     if (!roundTableId) {
-      dispatch(setConnectionError('缺少圆桌ID'))
+      dispatch(setConnectionError('缺少群组ID'))
       return
     }
 

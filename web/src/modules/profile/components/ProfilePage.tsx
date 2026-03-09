@@ -6,7 +6,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchProfile, updateProfile } from '../store/profileSlice'
 import { fetchCurrentUser } from '@/modules/auth/store/authSlice'
+import { fetchCognitiveVersions } from '@/modules/cognitive/store/cognitiveSlice'
 import { PreferencesForm } from './PreferencesForm'
+import { StudentIdUpload } from './StudentIdUpload'
 
 // 年级选项
 const GRADE_OPTIONS = [
@@ -35,6 +37,7 @@ export const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
   const { user, loading, error, updateLoading, updateError } = useAppSelector((state) => state.profile)
   const { user: authUser, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { versions, cognitiveMap } = useAppSelector((state) => state.cognitive)
 
   // 表单状态
   const [nickname, setNickname] = useState('')
@@ -64,6 +67,13 @@ export const ProfilePage: React.FC = () => {
       dispatch(fetchProfile(authUser.id))
     }
   }, [authUser?.id, dispatch])
+
+  // 加载认知版本列表
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCognitiveVersions())
+    }
+  }, [isAuthenticated, dispatch])
 
   // 同步表单数据
   useEffect(() => {
@@ -143,6 +153,56 @@ export const ProfilePage: React.FC = () => {
           求职偏好（13维度）
         </button>
       </div>
+
+      {/* 认知边界入口卡片 */}
+      <div className="mb-6 p-5 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg shadow-lg text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">摸索认知边界 - 知与不知</h3>
+            <p className="text-purple-100 text-sm mt-1">
+              {cognitiveMap?.dimensions?.length
+                ? '更新你的认知评估，追踪职业发展成长轨迹'
+                : '通过系统评估了解你在职业发展各维度的认知深度'}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => navigate('/cognitive')}
+              className="px-5 py-2.5 bg-white text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors shadow-sm"
+            >
+              {cognitiveMap?.dimensions?.length ? '更新评估' : '填写报告'}
+            </button>
+            {versions.length >= 2 && (
+              <button
+                onClick={() => navigate('/cognitive?compare=true')}
+                className="px-5 py-2.5 bg-white/20 text-white rounded-lg font-medium hover:bg-white/30 transition-colors border border-white/30"
+              >
+                查看认知边界对比图
+              </button>
+            )}
+          </div>
+        </div>
+        {versions.length >= 2 && (
+          <div className="mt-3 text-sm text-purple-100">
+            已有 {versions.length} 个认知版本记录
+          </div>
+        )}
+      </div>
+
+      {/* 学生证上传卡片 */}
+      {authUser?.id && (
+        <div className="mb-6">
+          <StudentIdUpload
+            userId={authUser.id}
+            studentIdImageUrl={user?.studentIdImageUrl}
+            isStudentVerified={user?.isStudentVerified}
+            onUploadSuccess={(url) => {
+              // 刷新用户画像以获取最新状态
+              dispatch(fetchProfile(authUser.id))
+            }}
+          />
+        </div>
+      )}
 
       {/* 基本信息表单 */}
       {activeTab === 'basic' && (

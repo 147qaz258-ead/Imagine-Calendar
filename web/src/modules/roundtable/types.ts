@@ -1,9 +1,9 @@
 /**
- * 圆桌讨论模块类型定义
+ * 群组模块类型定义
  * 根据 API-CONTRACT.md 唯一可信源定义
  */
 
-// 圆桌状态枚举
+// 群组状态枚举
 export enum RoundTableStatus {
   MATCHING = 'matching',         // 匹配中
   READY = 'ready',               // 人齐待开始
@@ -18,7 +18,17 @@ export enum ParticipantRole {
   MEMBER = 'member'              // 普通成员
 }
 
-// 圆桌状态中文标签
+// 参与者状态枚举
+export enum ParticipantStatus {
+  APPLIED = 'applied',           // 已报名
+  MATCHED = 'matched',           // 已匹配
+  JOINED = 'joined',             // 已加入
+  LEADER_CONFIRMED = 'leader_confirmed', // 已确认为组长
+  LEFT = 'left',                 // 已离开
+  CANCELLED = 'cancelled'        // 已取消
+}
+
+// 群组状态中文标签
 export const RoundTableStatusLabels: Record<RoundTableStatus, string> = {
   [RoundTableStatus.MATCHING]: '匹配中',
   [RoundTableStatus.READY]: '待开始',
@@ -27,7 +37,7 @@ export const RoundTableStatusLabels: Record<RoundTableStatus, string> = {
   [RoundTableStatus.CANCELLED]: '已取消',
 }
 
-// 圆桌状态颜色映射
+// 群组状态颜色映射
 export const RoundTableStatusColors: Record<RoundTableStatus, { bg: string; text: string; border: string }> = {
   [RoundTableStatus.MATCHING]: {
     bg: 'bg-yellow-100',
@@ -65,7 +75,7 @@ export interface Participant {
   role: ParticipantRole
 }
 
-// 圆桌讨论
+// 群组讨论
 export interface RoundTable {
   id: string
   topic: string
@@ -82,7 +92,7 @@ export interface RoundTable {
   updatedAt: string
 }
 
-// 圆桌问题
+// 群组问题
 export interface RoundTableQuestion {
   id: string
   category: string              // 问题类别
@@ -90,14 +100,14 @@ export interface RoundTableQuestion {
   followUp?: string[]           // 追问
 }
 
-// 圆桌查询参数
+// 群组查询参数
 export interface RoundTableQuery {
   status?: RoundTableStatus
   page?: number
   pageSize?: number
 }
 
-// 圆桌列表响应
+// 群组列表响应
 export interface RoundTableListResponse {
   success: boolean
   data: {
@@ -108,19 +118,19 @@ export interface RoundTableListResponse {
   }
 }
 
-// 圆桌详情响应
+// 群组详情响应
 export interface RoundTableDetailResponse {
   success: boolean
   data: RoundTable
 }
 
-// 创建圆桌报名请求
+// 创建群组报名请求
 export interface ApplyRoundTableRequest {
   preferredTimes: string[]      // 期望时间段 ISO 8601
   topics?: string[]             // 感兴趣的话题
 }
 
-// 创建圆桌报名响应
+// 创建群组报名响应
 export interface ApplyRoundTableResponse {
   success: boolean
   data: {
@@ -130,7 +140,7 @@ export interface ApplyRoundTableResponse {
   }
 }
 
-// 加入圆桌响应
+// 加入群组响应
 export interface JoinRoundTableResponse {
   success: boolean
   data: {
@@ -139,7 +149,7 @@ export interface JoinRoundTableResponse {
   }
 }
 
-// 离开圆桌响应
+// 离开群组响应
 export interface LeaveRoundTableResponse {
   success: boolean
   data: {
@@ -156,7 +166,7 @@ export interface QuestionsResponse {
   }
 }
 
-// 我的圆桌分组
+// 我的群组分组
 export interface MyRoundTables {
   matching: RoundTable[]         // 匹配中
   upcoming: RoundTable[]         // 即将开始
@@ -238,7 +248,7 @@ export interface StopSpeakingPayload {
   type: 'stop_speaking'
 }
 
-// 圆桌开始事件
+// 群组开始事件
 export interface RoundTableStartEvent {
   type: 'round_table_start'
   data: {
@@ -247,7 +257,7 @@ export interface RoundTableStartEvent {
   }
 }
 
-// 圆桌结束事件
+// 群组结束事件
 export interface RoundTableEndEvent {
   type: 'round_table_end'
   data: {

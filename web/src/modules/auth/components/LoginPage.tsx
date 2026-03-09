@@ -12,6 +12,7 @@ import {
   sendVerifyCode,
   clearError,
 } from '../store/authSlice'
+import { authApi } from '../services/authApi'
 import { PhoneInput } from './PhoneInput'
 import { VerifyCodeInput } from './VerifyCodeInput'
 import { PasswordInput } from './PasswordInput'
@@ -49,6 +50,13 @@ const validatePassword = (password: string): string | null => {
   return null
 }
 
+// 验证邀请码格式
+const validateInviteCodeFormat = (inviteCode: string): string | null => {
+  if (!inviteCode) return '请输入邀请码'
+  if (inviteCode.length < 4) return '邀请码格式不正确'
+  return null
+}
+
 export function LoginPage(): JSX.Element {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -63,15 +71,21 @@ export function LoginPage(): JSX.Element {
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [countdown, setCountdown] = useState(0)
 
   // 错误状态
   const [phoneError, setPhoneError] = useState<string | null>(null)
   const [codeError, setCodeError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [inviteCodeError, setInviteCodeError] = useState<string | null>(null)
 
   // 验证码发送状态
   const [codeSent, setCodeSent] = useState(false)
+
+  // 邀请码验证状态
+  const [validatingInviteCode, setValidatingInviteCode] = useState(false)
+  const [inviteCodeValid, setInviteCodeValid] = useState(false)
 
   // 已登录则跳转
   useEffect(() => {
@@ -100,6 +114,8 @@ export function LoginPage(): JSX.Element {
     setPhoneError(null)
     setCodeError(null)
     setPasswordError(null)
+    setInviteCodeError(null)
+    setInviteCodeValid(false)
   }, [activeTab])
 
   // 发送验证码
@@ -128,6 +144,39 @@ export function LoginPage(): JSX.Element {
       // 错误已经在slice中处理
     }
   }, [phone, activeTab, dispatch])
+
+  // 验证邀请码
+  const handleValidateInviteCode = useCallback(async (code: string): Promise<boolean> => {
+    const formatError = validateInviteCodeFormat(code)
+    if (formatError) {
+      setInviteCodeError(formatError)
+      setInviteCodeValid(false)
+      return false
+    }
+
+    setValidatingInviteCode(true)
+    setInviteCodeError(null)
+
+    try {
+      const result = await authApi.validateInviteCode({ code })
+
+      if (result.valid) {
+        setInviteCodeValid(true)
+        setInviteCodeError(null)
+        return true
+      } else {
+        setInviteCodeValid(false)
+        setInviteCodeError(result.message || '邀请码无效')
+        return false
+      }
+    } catch {
+      setInviteCodeValid(false)
+      setInviteCodeError('邀请码验证失败，请稍后重试')
+      return false
+    } finally {
+      setValidatingInviteCode(false)
+    }
+  }, [])
 
   // 验证码登录
   const handleCodeLogin = useCallback(async () => {
@@ -212,13 +261,28 @@ export function LoginPage(): JSX.Element {
       return
     }
 
+    // 验证邀请码格式
+    const inviteCodeFormatError = validateInviteCodeFormat(inviteCode)
+    if (inviteCodeFormatError) {
+      setInviteCodeError(inviteCodeFormatError)
+      return
+    }
+
     setPhoneError(null)
     setCodeError(null)
     setPasswordError(null)
 
+    // 先验证邀请码
+    if (!inviteCodeValid) {
+      const isValid = await handleValidateInviteCode(inviteCode)
+      if (!isValid) {
+        return
+      }
+    }
+
     try {
       const result = await dispatch(
-        register({ phone, code, password })
+        register({ phone, code, password, inviteCode })
       ).unwrap()
       if (result.success) {
         navigate('/calendar', { replace: true })
@@ -226,22 +290,26 @@ export function LoginPage(): JSX.Element {
     } catch {
       // 错误已经在slice中处理
     }
-  }, [phone, code, password, dispatch, navigate])
+  }, [phone, code, password, inviteCode, inviteCodeValid, dispatch, navigate, handleValidateInviteCode])
 
   // 表单提交
-  const handleSubmit = useCallback(() => {
-    switch (activeTab) {
-      case 'code':
-        handleCodeLogin()
-        break
-      case 'password':
-        handlePasswordLogin()
-        break
-      case 'register':
-        handleRegister()
-        break
-    }
-  }, [activeTab, handleCodeLogin, handlePasswordLogin, handleRegister])
+  const handleSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      e?.preventDefault()
+      switch (activeTab) {
+        case 'code':
+          handleCodeLogin()
+          break
+        case 'password':
+          handlePasswordLogin()
+          break
+        case 'register':
+          handleRegister()
+          break
+      }
+    },
+    [activeTab, handleCodeLogin, handlePasswordLogin, handleRegister]
+  )
 
   // 手机号变化时清除错误
   const handlePhoneChange = useCallback(
@@ -270,19 +338,29 @@ export function LoginPage(): JSX.Element {
     [passwordError]
   )
 
+  // 邀请码变化时清除错误和验证状态
+  const handleInviteCodeChange = useCallback(
+    (value: string) => {
+      setInviteCode(value)
+      if (inviteCodeError) setInviteCodeError(null)
+      if (inviteCodeValid) setInviteCodeValid(false)
+    },
+    [inviteCodeError, inviteCodeValid]
+  )
+
   // 按钮是否可用
   const isPhoneValid = phone.length === 11 && /^1[3-9]\d{9}$/.test(phone)
   const canSendCode = countdown === 0 && isPhoneValid
 
   const canSubmit = (() => {
-    if (loading) return false
+    if (loading || validatingInviteCode) return false
     switch (activeTab) {
       case 'code':
         return code.length === 6
       case 'password':
         return password.length >= 6
       case 'register':
-        return code.length === 6 && password.length >= 6
+        return code.length === 6 && password.length >= 6 && inviteCode.length >= 4
       default:
         return false
     }
@@ -300,6 +378,9 @@ export function LoginPage(): JSX.Element {
         default:
           return '处理中...'
       }
+    }
+    if (validatingInviteCode) {
+      return '验证邀请码...'
     }
     switch (activeTab) {
       case 'code':
@@ -346,158 +427,196 @@ export function LoginPage(): JSX.Element {
             ))}
           </div>
 
-          {/* 全局错误提示 */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 text-center">{error}</p>
-            </div>
-          )}
-
-          {/* 手机号输入 */}
-          <div className="mb-4">
-            <PhoneInput
-              value={phone}
-              onChange={handlePhoneChange}
-              error={phoneError ?? undefined}
-              disabled={loading}
-            />
-          </div>
-
-          {/* 验证码登录模式 */}
-          {activeTab === 'code' && (
-            <>
-              {/* 验证码输入 */}
-              <div className="mb-6">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <VerifyCodeInput
-                      value={code}
-                      onChange={handleCodeChange}
-                      error={codeError ?? undefined}
-                      disabled={loading}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSendCode}
-                    disabled={!canSendCode || loading}
-                    className={`mt-6 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                      canSendCode && !loading
-                        ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {countdown > 0
-                      ? `${countdown}s`
-                      : codeSent
-                      ? '重新发送'
-                      : '发送验证码'}
-                  </button>
-                </div>
+          {/* 表单 */}
+          <form onSubmit={handleSubmit}>
+            {/* 全局错误提示 */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600 text-center">{error}</p>
               </div>
-            </>
-          )}
-
-          {/* 密码登录模式 */}
-          {activeTab === 'password' && (
-            <>
-              {/* 密码输入 */}
-              <div className="mb-6">
-                <PasswordInput
-                  value={password}
-                  onChange={handlePasswordChange}
-                  error={passwordError ?? undefined}
-                  disabled={loading}
-                  placeholder="请输入密码"
-                />
-              </div>
-            </>
-          )}
-
-          {/* 注册模式 */}
-          {activeTab === 'register' && (
-            <>
-              {/* 验证码输入 */}
-              <div className="mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <VerifyCodeInput
-                      value={code}
-                      onChange={handleCodeChange}
-                      error={codeError ?? undefined}
-                      disabled={loading}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSendCode}
-                    disabled={!canSendCode || loading}
-                    className={`mt-6 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                      canSendCode && !loading
-                        ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {countdown > 0
-                      ? `${countdown}s`
-                      : codeSent
-                      ? '重新发送'
-                      : '发送验证码'}
-                  </button>
-                </div>
-              </div>
-
-              {/* 密码输入 */}
-              <div className="mb-6">
-                <PasswordInput
-                  value={password}
-                  onChange={handlePasswordChange}
-                  error={passwordError ?? undefined}
-                  disabled={loading}
-                  placeholder="设置密码（6-20位）"
-                />
-              </div>
-            </>
-          )}
-
-          {/* 提交按钮 */}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className={`w-full py-3 rounded-lg text-white font-medium transition-colors ${
-              canSubmit
-                ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
-                : 'bg-gray-300 cursor-not-allowed'
-            }`}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                {getButtonText()}
-              </span>
-            ) : (
-              getButtonText()
             )}
-          </button>
+
+            {/* 手机号输入 */}
+            <div className="mb-4">
+              <PhoneInput
+                value={phone}
+                onChange={handlePhoneChange}
+                error={phoneError ?? undefined}
+                disabled={loading}
+              />
+            </div>
+
+            {/* 验证码登录模式 */}
+            {activeTab === 'code' && (
+              <>
+                {/* 验证码输入 */}
+                <div className="mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <VerifyCodeInput
+                        value={code}
+                        onChange={handleCodeChange}
+                        error={codeError ?? undefined}
+                        disabled={loading}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendCode}
+                      disabled={!canSendCode || loading}
+                      className={`mt-6 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                        canSendCode && !loading
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {countdown > 0
+                        ? `${countdown}s`
+                        : codeSent
+                        ? '重新发送'
+                        : '发送验证码'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 密码登录模式 */}
+            {activeTab === 'password' && (
+              <>
+                {/* 密码输入 */}
+                <div className="mb-6">
+                  <PasswordInput
+                    value={password}
+                    onChange={handlePasswordChange}
+                    error={passwordError ?? undefined}
+                    disabled={loading}
+                    placeholder="请输入密码"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* 注册模式 */}
+            {activeTab === 'register' && (
+              <>
+                {/* 验证码输入 */}
+                <div className="mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <VerifyCodeInput
+                        value={code}
+                        onChange={handleCodeChange}
+                        error={codeError ?? undefined}
+                        disabled={loading}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendCode}
+                      disabled={!canSendCode || loading}
+                      className={`mt-6 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                        canSendCode && !loading
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {countdown > 0
+                        ? `${countdown}s`
+                        : codeSent
+                        ? '重新发送'
+                        : '发送验证码'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 密码输入 */}
+                <div className="mb-4">
+                  <PasswordInput
+                    value={password}
+                    onChange={handlePasswordChange}
+                    error={passwordError ?? undefined}
+                    disabled={loading}
+                    placeholder="设置密码（6-20位）"
+                  />
+                </div>
+
+                {/* 邀请码输入 */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    邀请码 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={inviteCode}
+                      onChange={(e) => handleInviteCodeChange(e.target.value.trim())}
+                      placeholder="请输入邀请码"
+                      disabled={loading || validatingInviteCode}
+                      className={`w-full px-4 py-3 rounded-lg border ${
+                        inviteCodeError
+                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                          : inviteCodeValid
+                          ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      } focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                    />
+                    {inviteCodeValid && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {inviteCodeError && (
+                    <p className="mt-1 text-sm text-red-500">{inviteCodeError}</p>
+                  )}
+                  {inviteCodeValid && (
+                    <p className="mt-1 text-sm text-green-500">邀请码有效</p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* 提交按钮 */}
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className={`w-full py-3 rounded-lg text-white font-medium transition-colors ${
+                canSubmit
+                  ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                  : 'bg-gray-300 cursor-not-allowed'
+              }`}
+            >
+              {loading || validatingInviteCode ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  {getButtonText()}
+                </span>
+              ) : (
+                getButtonText()
+              )}
+            </button>
+          </form>
 
           {/* 协议提示 */}
           <p className="mt-4 text-xs text-gray-500 text-center">

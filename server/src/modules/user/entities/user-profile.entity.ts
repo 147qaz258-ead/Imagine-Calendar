@@ -64,6 +64,12 @@ export class UserProfile {
   @Column({ type: 'varchar', length: 50, nullable: true, name: 'student_id' })
   studentId: string
 
+  @Column({ type: 'varchar', length: 500, nullable: true, name: 'student_id_image_url' })
+  studentIdImageUrl: string
+
+  @Column({ type: 'boolean', default: false, name: 'is_student_verified' })
+  isStudentVerified: boolean
+
   @Column({
     type: 'jsonb',
     default: {},

@@ -6,6 +6,7 @@ import chatReducer from '@/modules/roundtable/store/chatSlice'
 import authReducer from '@/modules/auth/store/authSlice'
 import profileReducer from '@/modules/profile/store/profileSlice'
 import cognitiveReducer from '@/modules/cognitive/store/cognitiveSlice'
+import cognitiveBoundaryReducer from '@/modules/cognitive-boundary/store/cognitiveBoundarySlice'
 import notificationReducer from '@/modules/notification/store/notificationSlice'
 
 export const store = configureStore({
@@ -17,6 +18,7 @@ export const store = configureStore({
     auth: authReducer,
     profile: profileReducer,
     cognitive: cognitiveReducer,
+    cognitiveBoundary: cognitiveBoundaryReducer,
     notification: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>

@@ -58,7 +58,7 @@ export function MatchingStatus({ roundTable, onCancel }: MatchingStatusProps) {
           ) : roundTable.status === RoundTableStatus.READY ? (
             '人数已齐，即将开始'
           ) : (
-            '圆桌讨论进行中'
+            '群组讨论进行中'
           )}
         </p>
       </div>

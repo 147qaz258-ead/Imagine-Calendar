@@ -10,7 +10,11 @@ import { EventModule } from './modules/event/event.module'
 import { NotificationModule } from './modules/notification/notification.module'
 import { RoundTableModule } from './modules/roundtable'
 import { CognitiveModule } from './modules/cognitive'
+import { CognitiveBoundaryModule } from './modules/cognitive-boundary'
 import { FilterModule } from './modules/filter/filter.module'
+import { InviteCodeModule } from './modules/invite-code/invite-code.module'
+import { CalendarShareModule } from './modules/calendar-share'
+import { GroupMeetingModule } from './modules/group-meeting'
 
 // 配置验证
 import * as Joi from 'joi'
@@ -70,7 +74,11 @@ import * as Joi from 'joi'
     NotificationModule,
     RoundTableModule,
     CognitiveModule,
+    CognitiveBoundaryModule,
     FilterModule,
+    InviteCodeModule,
+    CalendarShareModule,
+    GroupMeetingModule,
   ],
   controllers: [AppController],
   providers: [

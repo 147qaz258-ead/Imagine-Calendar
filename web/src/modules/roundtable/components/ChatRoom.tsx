@@ -141,7 +141,7 @@ export function ChatRoom({
       {/* 头部 */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
         <div className="flex items-center gap-3">
-          <h3 className="font-semibold text-gray-800">圆桌讨论</h3>
+          <h3 className="font-semibold text-gray-800">群组讨论</h3>
           <ParticipantAvatars participants={participants} />
         </div>
         <div className="flex items-center gap-2">

@@ -1,5 +1,5 @@
 /**
- * 圆桌卡片组件
+ * 群组卡片组件
  */
 import type { RoundTable, Participant } from '../types'
 import { RoundTableStatus, RoundTableStatusLabels, RoundTableStatusColors, ParticipantRole } from '../types'
@@ -103,7 +103,7 @@ export function RoundTableCard({
                   onJoin()
                 }}
               >
-                加入圆桌
+                加入群组
               </button>
             )}
             {roundTable.status === RoundTableStatus.READY && onJoin && (
@@ -114,7 +114,7 @@ export function RoundTableCard({
                   onJoin()
                 }}
               >
-                进入圆桌
+                进入群组
               </button>
             )}
             {(roundTable.status === RoundTableStatus.MATCHING || roundTable.status === RoundTableStatus.READY) && onLeave && (

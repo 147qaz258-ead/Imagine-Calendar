@@ -10,6 +10,7 @@ import type {
   UpdatePreferencesRequest,
   UpdatePreferencesResponse,
   UploadStudentCardResponse,
+  UploadStudentIdImageResponse,
 } from '../types'
 
 export const profileApi = {
@@ -46,6 +47,21 @@ export const profileApi = {
     formData.append('image', file)
 
     return apiClient.post(`/users/${userId}/student-card`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  },
+
+  /**
+   * 上传学生证图片
+   * POST /api/users/:id/student-id-image
+   */
+  uploadStudentIdImage: async (userId: string, file: File): Promise<UploadStudentIdImageResponse> => {
+    const formData = new FormData()
+    formData.append('image', file)
+
+    return apiClient.post(`/users/${userId}/student-id-image`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

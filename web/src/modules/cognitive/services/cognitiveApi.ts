@@ -10,6 +10,10 @@ import type {
   CognitiveHistoryResponse,
   CompareCognitiveMapRequest,
   CompareCognitiveMapResponse,
+  CognitiveVersionsResponse,
+  CognitiveVersionResponse,
+  CreateCognitiveVersionRequest,
+  CompareVersionsResponse,
 } from '../types'
 
 export const cognitiveApi = {
@@ -58,5 +62,41 @@ export const cognitiveApi = {
     data: CompareCognitiveMapRequest
   ): Promise<CompareCognitiveMapResponse> => {
     return apiClient.post('/cognitive-map/compare', data)
+  },
+
+  // ============ 版本管理接口 ============
+
+  /**
+   * 获取所有认知版本
+   * GET /api/cognitive/versions
+   */
+  getCognitiveVersions: async (): Promise<CognitiveVersionsResponse> => {
+    return apiClient.get('/cognitive/versions')
+  },
+
+  /**
+   * 创建认知版本
+   * POST /api/cognitive/version
+   */
+  createCognitiveVersion: async (
+    data: CreateCognitiveVersionRequest
+  ): Promise<CognitiveVersionResponse> => {
+    return apiClient.post('/cognitive/version', data)
+  },
+
+  /**
+   * 获取单个版本详情
+   * GET /api/cognitive/versions/:id
+   */
+  getCognitiveVersionById: async (versionId: string): Promise<CognitiveVersionResponse> => {
+    return apiClient.get(`/cognitive/versions/${versionId}`)
+  },
+
+  /**
+   * 对比两个版本
+   * GET /api/cognitive/compare?v1=xxx&v2=xxx
+   */
+  compareVersions: async (v1: string, v2: string): Promise<CompareVersionsResponse> => {
+    return apiClient.get(`/cognitive/compare?v1=${v1}&v2=${v2}`)
   },
 }

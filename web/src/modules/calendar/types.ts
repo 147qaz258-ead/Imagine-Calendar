@@ -12,34 +12,8 @@ export enum CompanyType {
   GOVERNMENT = 'government', // 事业单位（蓝色）
 }
 
-// 企业类型颜色映射
-export const CompanyTypeColors: Record<CompanyType, { bg: string; text: string; border: string }> = {
-  [CompanyType.SOE]: {
-    bg: 'bg-gray-100',
-    text: 'text-gray-800',
-    border: 'border-gray-300',
-  },
-  [CompanyType.FOREIGN]: {
-    bg: 'bg-purple-100',
-    text: 'text-purple-800',
-    border: 'border-purple-300',
-  },
-  [CompanyType.PRIVATE]: {
-    bg: 'bg-yellow-100',
-    text: 'text-yellow-800',
-    border: 'border-yellow-300',
-  },
-  [CompanyType.STARTUP]: {
-    bg: 'bg-orange-100',
-    text: 'text-orange-800',
-    border: 'border-orange-300',
-  },
-  [CompanyType.GOVERNMENT]: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-800',
-    border: 'border-blue-300',
-  },
-}
+// 企业类型颜色配置 - 从 constants/colors.ts 导入（单一数据源）
+export { CompanyTypeColors, DEFAULT_COMPANY_COLOR, getCompanyTypeColor } from './constants/colors'
 
 // 企业类型中文标签
 export const CompanyTypeLabels: Record<CompanyType, string> = {

@@ -1,5 +1,5 @@
 /**
- * 圆桌报名表单组件
+ * 群组报名表单组件
  */
 import { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -96,7 +96,7 @@ export function ApplyForm({ onSuccess, onCancel }: ApplyFormProps) {
         <h3 className="text-lg font-semibold text-gray-900 mb-2">报名成功</h3>
         <p className="text-sm text-gray-500 mb-4">
           {applicationStatus.status === 'matched'
-            ? '已为您匹配到圆桌，即将开始讨论'
+            ? '已为您匹配到群组，即将开始讨论'
             : `正在为您匹配志同道合的伙伴，预计等待 ${applicationStatus.estimatedWaitTime || 30} 分钟`}
         </p>
         <button
@@ -106,7 +106,7 @@ export function ApplyForm({ onSuccess, onCancel }: ApplyFormProps) {
             onSuccess?.()
           }}
         >
-          查看我的圆桌
+          查看我的群组
         </button>
       </div>
     )
@@ -114,7 +114,7 @@ export function ApplyForm({ onSuccess, onCancel }: ApplyFormProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">报名圆桌讨论</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">报名群组讨论</h2>
 
       {/* 错误提示 */}
       {error && (
@@ -219,12 +219,12 @@ export function ApplyForm({ onSuccess, onCancel }: ApplyFormProps) {
 
       {/* 说明文字 */}
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">圆桌讨论说明</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">群组讨论说明</h4>
         <ul className="text-sm text-gray-600 space-y-1">
-          <li>每场圆桌由6名志同道合的伙伴组成</li>
+          <li>每场群组由6名志同道合的伙伴组成</li>
           <li>讨论时长约60分钟</li>
-          <li>系统将根据您的偏好为您匹配合适的圆桌</li>
-          <li>报名后可在"我的圆桌"中查看匹配状态</li>
+          <li>系统将根据您的偏好为您匹配合适的群组</li>
+          <li>报名后可在"我的群组"中查看匹配状态</li>
         </ul>
       </div>
 

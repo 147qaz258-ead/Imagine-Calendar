@@ -3,11 +3,13 @@ import { FilterPage as FilterPageComponent } from '@/modules/filter'
 import { RoundTableList, RoundTableDetail } from '@/modules/roundtable'
 import { Calendar } from '@/modules/calendar'
 import { LoginPage } from '@/modules/auth'
-import { ProfilePage as ProfilePageComponent } from '@/modules/profile'
+import { ProfilePage as ProfilePageComponent, PreferencesForm } from '@/modules/profile'
 import { CognitivePage as CognitivePageComponent } from '@/modules/cognitive'
+import { CognitiveBoundaryPage as CognitiveBoundaryPageComponent } from '@/modules/cognitive-boundary'
 import { NotificationPage as NotificationPageComponent } from '@/modules/notification'
-import { Layout } from '@/shared/components'
+import { Layout, QuickLinks, UpcomingEvents, GroupStatus } from '@/shared/components'
 import { useAppSelector } from '@/store/hooks'
+import { AboutPage, HelpPage } from '@/pages'
 
 function App() {
   return (
@@ -18,10 +20,14 @@ function App() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/filter" element={<FilterPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/preferences" element={<PreferencesPage />} />
+        <Route path="/cognitive-boundary" element={<CognitiveBoundaryPage />} />
         <Route path="/roundtable" element={<RoundTablePage />} />
         <Route path="/roundtable/:id" element={<RoundTableDetailPage />} />
         <Route path="/cognitive" element={<CognitivePage />} />
         <Route path="/notifications" element={<NotificationPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>
@@ -30,8 +36,40 @@ function App() {
 
 // Placeholder pages
 function HomePage() {
-  const navigate = useNavigate()
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated)
+
+  // 未登录用户显示欢迎页面
+  if (!isAuthenticated) {
+    return <WelcomeSection />
+  }
+
+  // 已登录用户显示主界面（日历 + 侧边栏）
+  return (
+    <div className="flex h-full gap-4">
+      {/* 主日历区域 - 占 80% */}
+      <div className="w-full lg:w-4/5 flex-shrink-0">
+        <Calendar />
+      </div>
+
+      {/* 侧边栏 - 占 20%，移动端隐藏 */}
+      <aside className="hidden lg:block w-1/5 min-w-[200px] max-w-[280px] border-l border-gray-200 pl-4">
+        <div className="space-y-6">
+          <QuickLinks />
+          <div className="border-t border-gray-100 pt-4">
+            <UpcomingEvents />
+          </div>
+          <div className="border-t border-gray-100 pt-4">
+            <GroupStatus />
+          </div>
+        </div>
+      </aside>
+    </div>
+  )
+}
+
+// 欢迎页面 - 未登录用户显示
+function WelcomeSection() {
+  const navigate = useNavigate()
 
   const features = [
     {
@@ -72,7 +110,7 @@ function HomePage() {
     },
     {
       id: 'roundtable',
-      title: '圆桌讨论',
+      title: '我的群组',
       description: '参与话题讨论，分享经验和见解',
       path: '/roundtable',
       icon: (
@@ -85,11 +123,7 @@ function HomePage() {
   ]
 
   const handleCardClick = (path: string) => {
-    if (!isAuthenticated) {
-      navigate('/login')
-      return
-    }
-    navigate(path)
+    navigate('/login')
   }
 
   return (
@@ -102,14 +136,12 @@ function HomePage() {
         </p>
       </div>
 
-      {/* Login Prompt for Non-authenticated Users */}
-      {!isAuthenticated && (
-        <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center max-w-2xl mx-auto">
-          <p className="text-blue-800">
-            登录后可使用完整功能
-          </p>
-        </div>
-      )}
+      {/* Login Prompt */}
+      <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center max-w-2xl mx-auto">
+        <p className="text-blue-800">
+          登录后可使用完整功能
+        </p>
+      </div>
 
       {/* Feature Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -152,6 +184,20 @@ function ProfilePage() {
   return <ProfilePageComponent />
 }
 
+function PreferencesPage() {
+  return (
+    <div className="max-w-2xl mx-auto py-6">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">个性化选择</h1>
+      <p className="text-gray-600 mb-6">请选择您的职业偏好，我们将为您匹配合适的群组。</p>
+      <PreferencesForm />
+    </div>
+  )
+}
+
+function CognitiveBoundaryPage() {
+  return <CognitiveBoundaryPageComponent />
+}
+
 function RoundTablePage() {
   const navigate = useNavigate()
   return (
@@ -166,7 +212,7 @@ function RoundTableDetailPage() {
   const navigate = useNavigate()
 
   if (!id) {
-    return <div className="text-center py-12">圆桌ID不存在</div>
+    return <div className="text-center py-12">群组ID不存在</div>
   }
 
   return (

@@ -6,8 +6,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { User, UserProfile, School, Major, VerificationCode } from '../modules/user/entities'
 import { Event, UserEvent } from '../modules/event/entities'
 import { RoundTable, RoundTableParticipant, ChatMessage } from '../modules/roundtable/entities'
-import { CognitiveMap } from '../modules/cognitive/entities'
+import { CognitiveMap, CognitiveVersion } from '../modules/cognitive/entities'
 import { Notification } from '../modules/notification/entities'
+import { CognitiveBoundaryAssessment } from '../modules/cognitive-boundary/entities'
+import { InviteCode } from '../modules/invite-code/entities'
+import { CalendarShare } from '../modules/calendar-share/entities'
+import { GroupMeeting } from '../modules/group-meeting/entities'
 
 /**
  * 数据库模块
@@ -40,7 +44,12 @@ import { Notification } from '../modules/notification/entities'
               RoundTableParticipant,
               ChatMessage,
               CognitiveMap,
+              CognitiveVersion,
               Notification,
+              CognitiveBoundaryAssessment,
+              InviteCode,
+              CalendarShare,
+              GroupMeeting,
             ],
             synchronize: true,
             logging: !isProduction,
@@ -67,7 +76,12 @@ import { Notification } from '../modules/notification/entities'
             RoundTableParticipant,
             ChatMessage,
             CognitiveMap,
+            CognitiveVersion,
             Notification,
+            CognitiveBoundaryAssessment,
+            InviteCode,
+            CalendarShare,
+            GroupMeeting,
           ],
           synchronize: true,
           logging: !isProduction,

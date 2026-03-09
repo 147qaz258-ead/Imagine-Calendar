@@ -1,5 +1,5 @@
 /**
- * 圆桌聊天状态管理 Slice
+ * 群组聊天状态管理 Slice
  */
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ChatMessage, Participant, UserStatus } from '../types'
@@ -33,7 +33,7 @@ export interface ChatState {
   phaseEndTime: string | null
   currentQuestion: string | null
 
-  // 圆桌状态
+  // 群组状态
   roundTableStarted: boolean
   roundTableEnded: boolean
   summary: string | null
@@ -147,7 +147,7 @@ const chatSlice = createSlice({
       state.messages = []
     },
 
-    // 圆桌开始
+    // 群组开始
     roundTableStart: (state, action: PayloadAction<{ startedAt: string; duration: number }>) => {
       state.roundTableStarted = true
       state.roundTableEnded = false
@@ -159,7 +159,7 @@ const chatSlice = createSlice({
       state.phaseEndTime = endTime.toISOString()
     },
 
-    // 圆桌结束
+    // 群组结束
     roundTableEnd: (state, action: PayloadAction<{ endedAt: string; duration: number; summary: string }>) => {
       state.roundTableEnded = true
       state.roundTableStarted = false

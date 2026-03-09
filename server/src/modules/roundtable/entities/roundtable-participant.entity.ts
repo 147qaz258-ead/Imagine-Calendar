@@ -26,6 +26,7 @@ export enum ParticipantStatus {
   APPLIED = 'applied', // 已报名
   MATCHED = 'matched', // 已匹配
   JOINED = 'joined', // 已加入
+  LEADER_CONFIRMED = 'leader_confirmed', // 已确认为组长
   LEFT = 'left', // 已离开
   CANCELLED = 'cancelled', // 已取消
 }
@@ -68,6 +69,12 @@ export class RoundTableParticipant {
 
   @Column({ type: 'timestamptz', nullable: true, name: 'joined_at' })
   joinedAt: Date
+
+  @Column({ type: 'timestamptz', name: 'leader_confirm_deadline', nullable: true })
+  leaderConfirmDeadline: Date | null
+
+  @Column({ type: 'boolean', name: 'is_leader', default: false })
+  isLeader: boolean
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt: Date

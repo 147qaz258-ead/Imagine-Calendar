@@ -1,5 +1,5 @@
 /**
- * 圆桌讨论状态管理 Slice
+ * 群组状态管理 Slice
  */
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import type { RoundTable, MyRoundTables, RoundTableQuestion } from '../types'
@@ -8,9 +8,9 @@ import { roundTableApi } from '../services/roundTableApi'
 
 // 状态接口
 export interface RoundTableState {
-  // 我的圆桌分组
+  // 我的群组分组
   myRoundTables: MyRoundTables
-  // 当前圆桌详情
+  // 当前群组详情
   currentRoundTable: RoundTable | null
   // 问题清单
   questions: RoundTableQuestion[]
@@ -48,41 +48,41 @@ const initialState: RoundTableState = {
   error: null,
 }
 
-// 异步 Thunk：获取圆桌列表
+// 异步 Thunk：获取群组列表
 export const fetchRoundTables = createAsyncThunk(
   'roundTable/fetchList',
   async (params: { status?: RoundTableStatus; page?: number; pageSize?: number } | undefined, { rejectWithValue }) => {
     try {
       const response = await roundTableApi.getRoundTables(params)
       if (!response.success) {
-        throw new Error('获取圆桌列表失败')
+        throw new Error('获取群组列表失败')
       }
       return response.data
     } catch (error: unknown) {
       const err = error as { message?: string }
-      return rejectWithValue(err.message || '获取圆桌列表失败')
+      return rejectWithValue(err.message || '获取群组列表失败')
     }
   }
 )
 
-// 异步 Thunk：获取圆桌详情
+// 异步 Thunk：获取群组详情
 export const fetchRoundTableDetail = createAsyncThunk(
   'roundTable/fetchDetail',
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await roundTableApi.getDetail(id)
       if (!response.success) {
-        throw new Error('获取圆桌详情失败')
+        throw new Error('获取群组详情失败')
       }
       return response.data
     } catch (error: unknown) {
       const err = error as { message?: string }
-      return rejectWithValue(err.message || '获取圆桌详情失败')
+      return rejectWithValue(err.message || '获取群组详情失败')
     }
   }
 )
 
-// 异步 Thunk：报名圆桌
+// 异步 Thunk：报名群组
 export const applyRoundTable = createAsyncThunk(
   'roundTable/apply',
   async (
@@ -102,36 +102,53 @@ export const applyRoundTable = createAsyncThunk(
   }
 )
 
-// 异步 Thunk：加入圆桌
+// 异步 Thunk：自动匹配群组
+export const autoMatchRoundTable = createAsyncThunk(
+  'roundTable/autoMatch',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await roundTableApi.autoMatch()
+      if (!response.success) {
+        throw new Error('自动匹配失败')
+      }
+      return response.data
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return rejectWithValue(err.message || '自动匹配失败')
+    }
+  }
+)
+
+// 异步 Thunk：加入群组
 export const joinRoundTable = createAsyncThunk(
   'roundTable/join',
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await roundTableApi.join(id)
       if (!response.success) {
-        throw new Error('加入圆桌失败')
+        throw new Error('加入群组失败')
       }
       return response.data
     } catch (error: unknown) {
       const err = error as { message?: string }
-      return rejectWithValue(err.message || '加入圆桌失败')
+      return rejectWithValue(err.message || '加入群组失败')
     }
   }
 )
 
-// 异步 Thunk：离开圆桌
+// 异步 Thunk：离开群组
 export const leaveRoundTable = createAsyncThunk(
   'roundTable/leave',
   async (id: string, { rejectWithValue }) => {
     try {
       const response = await roundTableApi.leave(id)
       if (!response.success) {
-        throw new Error('离开圆桌失败')
+        throw new Error('离开群组失败')
       }
       return response.data
     } catch (error: unknown) {
       const err = error as { message?: string }
-      return rejectWithValue(err.message || '离开圆桌失败')
+      return rejectWithValue(err.message || '离开群组失败')
     }
   }
 )
@@ -153,7 +170,7 @@ export const fetchQuestions = createAsyncThunk(
   }
 )
 
-// 辅助函数：分类圆桌
+// 辅助函数：分类群组
 function categorizeRoundTables(roundTables: RoundTable[]): MyRoundTables {
   const now = new Date()
 
@@ -174,7 +191,7 @@ const roundTableSlice = createSlice({
   name: 'roundTable',
   initialState,
   reducers: {
-    // 清除当前圆桌
+    // 清除当前群组
     clearCurrentRoundTable: (state) => {
       state.currentRoundTable = null
     },
@@ -190,13 +207,13 @@ const roundTableSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
-    // 更新圆桌列表（手动分类）
+    // 更新群组列表（手动分类）
     setMyRoundTables: (state, action: PayloadAction<RoundTable[]>) => {
       state.myRoundTables = categorizeRoundTables(action.payload)
     },
   },
   extraReducers: (builder) => {
-    // 获取圆桌列表
+    // 获取群组列表
     builder
       .addCase(fetchRoundTables.pending, (state) => {
         state.loading = true
@@ -211,7 +228,7 @@ const roundTableSlice = createSlice({
         state.error = action.payload as string
       })
 
-    // 获取圆桌详情
+    // 获取群组详情
     builder
       .addCase(fetchRoundTableDetail.pending, (state) => {
         state.detailLoading = true
@@ -226,7 +243,7 @@ const roundTableSlice = createSlice({
         state.error = action.payload as string
       })
 
-    // 报名圆桌
+    // 报名群组
     builder
       .addCase(applyRoundTable.pending, (state) => {
         state.applying = true
@@ -245,7 +262,26 @@ const roundTableSlice = createSlice({
         state.error = action.payload as string
       })
 
-    // 加入圆桌
+    // 自动匹配群组
+    builder
+      .addCase(autoMatchRoundTable.pending, (state) => {
+        state.applying = true
+        state.error = null
+      })
+      .addCase(autoMatchRoundTable.fulfilled, (state, action) => {
+        state.applying = false
+        state.applicationStatus = {
+          applicationId: action.payload.roundTableId,
+          status: action.payload.matched ? 'matched' : 'pending',
+          estimatedWaitTime: action.payload.matched ? 0 : 30,
+        }
+      })
+      .addCase(autoMatchRoundTable.rejected, (state, action) => {
+        state.applying = false
+        state.error = action.payload as string
+      })
+
+    // 加入群组
     builder
       .addCase(joinRoundTable.fulfilled, (state, action) => {
         state.currentRoundTable = action.payload.roundTable
@@ -254,14 +290,14 @@ const roundTableSlice = createSlice({
         state.error = action.payload as string
       })
 
-    // 离开圆桌
+    // 离开群组
     builder
       .addCase(leaveRoundTable.fulfilled, (state, action) => {
         if (action.payload.left && action.payload.roundTable) {
-          // 更新圆桌信息
+          // 更新群组信息
           state.currentRoundTable = action.payload.roundTable
         } else if (action.payload.left) {
-          // 已离开，清除当前圆桌
+          // 已离开，清除当前群组
           state.currentRoundTable = null
         }
       })

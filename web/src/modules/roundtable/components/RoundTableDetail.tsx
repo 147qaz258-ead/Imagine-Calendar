@@ -1,5 +1,5 @@
 /**
- * 圆桌详情组件
+ * 群组详情组件
  */
 import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -7,6 +7,11 @@ import { fetchRoundTableDetail, joinRoundTable, leaveRoundTable } from '../store
 import { MatchingStatus } from './MatchingStatus'
 import { SixPeopleGroup } from './SixPeopleGroup'
 import { ChatRoom } from './ChatRoom'
+import { LeaderConfirm } from './LeaderConfirm'
+import { QuestionnaireStatus } from './QuestionnaireStatus'
+import { CalendarShare } from './CalendarShare'
+import { CreateMeetingForm } from './CreateMeetingForm'
+import { MeetingList } from './MeetingList'
 import { RoundTableStatus, RoundTableStatusLabels, RoundTableStatusColors } from '../types'
 
 interface RoundTableDetailProps {
@@ -17,15 +22,17 @@ interface RoundTableDetailProps {
 export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
   const dispatch = useAppDispatch()
   const { currentRoundTable, detailLoading, error } = useAppSelector(state => state.roundTable)
+  const { user } = useAppSelector(state => state.auth)
   const [showChatRoom, setShowChatRoom] = useState(false)
   const [wsEndpoint, setWsEndpoint] = useState<string | null>(null)
+  const [showMeetingForm, setShowMeetingForm] = useState(false)
 
   // 加载详情
   useEffect(() => {
     dispatch(fetchRoundTableDetail(id))
   }, [dispatch, id])
 
-  // 加入圆桌
+  // 加入群组
   const handleJoin = async () => {
     const result = await dispatch(joinRoundTable(id))
     if (joinRoundTable.fulfilled.match(result)) {
@@ -35,9 +42,9 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
     }
   }
 
-  // 离开圆桌
+  // 离开群组
   const handleLeave = async () => {
-    if (confirm('确定要离开这个圆桌吗？')) {
+    if (confirm('确定要离开这个群组吗？')) {
       await dispatch(leaveRoundTable(id))
       setShowChatRoom(false)
       setWsEndpoint(null)
@@ -47,6 +54,11 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
   // 退出聊天室
   const handleLeaveChatRoom = () => {
     setShowChatRoom(false)
+  }
+
+  // 刷新群组详情
+  const handleRefreshDetail = () => {
+    dispatch(fetchRoundTableDetail(id))
   }
 
   // 加载中
@@ -77,7 +89,7 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
   if (!currentRoundTable) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500">未找到圆桌</div>
+        <div className="text-gray-500">未找到群组</div>
         {onBack && (
           <button onClick={onBack} className="mt-4 text-blue-600">
             返回列表
@@ -89,6 +101,10 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
 
   const statusColor = RoundTableStatusColors[currentRoundTable.status]
   const statusLabel = RoundTableStatusLabels[currentRoundTable.status]
+
+  // 检查当前用户是否是组长
+  const currentUserParticipant = currentRoundTable.participants.find(p => p.userId === user?.id)
+  const isLeader = currentUserParticipant?.role === 'host'
 
   return (
     <div>
@@ -153,7 +169,7 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
             onClick={handleJoin}
             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
-            {currentRoundTable.status === RoundTableStatus.IN_PROGRESS ? '加入讨论' : '进入圆桌'}
+            {currentRoundTable.status === RoundTableStatus.IN_PROGRESS ? '加入讨论' : '进入群组'}
           </button>
         )}
       </div>
@@ -168,10 +184,75 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
         </div>
       )}
 
+      {/* 组长确认 - TASK-4.2: 满6人后显示 */}
+      {currentRoundTable.status === RoundTableStatus.READY && (
+        <div className="mb-6">
+          <LeaderConfirm
+            groupId={id}
+            onLeaderConfirmed={() => dispatch(fetchRoundTableDetail(id))}
+          />
+        </div>
+      )}
+
       {/* 六人小组展示 */}
       <div className="mb-6">
         <SixPeopleGroup participants={currentRoundTable.participants} />
       </div>
+
+      {/* 问题清单完成状态 - TASK-4.3: READY或IN_PROGRESS状态显示 */}
+      {(currentRoundTable.status === RoundTableStatus.READY ||
+        currentRoundTable.status === RoundTableStatus.IN_PROGRESS) &&
+        currentRoundTable.participants.length > 0 && (
+          <div className="mb-6">
+            <QuestionnaireStatus groupId={id} />
+          </div>
+        )}
+
+      {/* 日历共享 - TASK-4.4: READY或IN_PROGRESS状态显示 */}
+      {(currentRoundTable.status === RoundTableStatus.READY ||
+        currentRoundTable.status === RoundTableStatus.IN_PROGRESS) &&
+        currentRoundTable.participants.length > 0 && currentUserParticipant && (
+          <div className="mb-6">
+            <CalendarShare groupId={id} isLeader={isLeader} />
+          </div>
+        )}
+
+      {/* 发起会议 - TASK-4.5: READY或IN_PROGRESS状态且有组长时显示 */}
+      {(currentRoundTable.status === RoundTableStatus.READY ||
+        currentRoundTable.status === RoundTableStatus.IN_PROGRESS) &&
+        currentRoundTable.participants.length > 0 && (
+          <div className="mb-6">
+            {/* 会议列表 */}
+            <MeetingList
+              groupId={id}
+              isLeader={isLeader}
+              onRefresh={handleRefreshDetail}
+            />
+
+            {/* 组长可以发起会议 */}
+            {isLeader && (
+              <div className="mt-4">
+                {showMeetingForm ? (
+                  <CreateMeetingForm
+                    groupId={id}
+                    onSuccess={() => {
+                      setShowMeetingForm(false)
+                      handleRefreshDetail()
+                    }}
+                    onCancel={() => setShowMeetingForm(false)}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setShowMeetingForm(true)}
+                    className="w-full py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                  >
+                    + 发起新会议
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
       {/* 讨论问题清单 */}
       {currentRoundTable.questions.length > 0 && (

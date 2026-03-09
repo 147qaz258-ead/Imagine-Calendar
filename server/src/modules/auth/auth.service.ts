@@ -1,4 +1,11 @@
-import { Injectable, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common'
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  Logger,
+  Inject,
+  forwardRef,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -8,6 +15,8 @@ import * as bcrypt from 'bcryptjs'
 import { User, UserStatus } from '../user/entities/user.entity'
 import { VerificationCode } from '../user/entities/verification-code.entity'
 import { SendCodeDto, LoginDto, RefreshTokenDto, RegisterDto, PasswordLoginDto } from './dto'
+import { InviteCodeService } from '../invite-code/invite-code.service'
+import { RoundTableService } from '../roundtable/roundtable.service'
 
 /**
  * 用户响应类型（不包含密码）
@@ -47,6 +56,10 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(VerificationCode)
     private codeRepository: Repository<VerificationCode>,
+    @Inject(forwardRef(() => InviteCodeService))
+    private inviteCodeService: InviteCodeService,
+    @Inject(forwardRef(() => RoundTableService))
+    private roundTableService: RoundTableService,
   ) {
     // 初始化 Redis 连接 - 支持 Upstash 云部署
     const redisUrl = this.configService.get<string>('REDIS_URL')
@@ -227,9 +240,12 @@ export class AuthService {
    * 密码注册
    * 1. 验证验证码
    * 2. 检查用户是否已存在
-   * 3. 使用 bcrypt 加密密码
-   * 4. 创建新用户
-   * 5. 生成 JWT Token
+   * 3. 验证邀请码（如果提供）
+   * 4. 使用 bcrypt 加密密码
+   * 5. 创建新用户
+   * 6. 更新邀请码使用次数
+   * 7. 根据邀请码分配群组
+   * 8. 生成 JWT Token
    */
   async register(dto: RegisterDto): Promise<{
     success: boolean
@@ -237,9 +253,10 @@ export class AuthService {
       user: UserResponse
       token: string
       expiresIn: number
+      groupId: string | null
     }
   }> {
-    const { phone, code, password } = dto
+    const { phone, code, password, inviteCode } = dto
 
     // 验证验证码
     const codeKey = this.CODE_PREFIX + phone
@@ -274,6 +291,20 @@ export class AuthService {
       })
     }
 
+    // 验证邀请码（如果提供）
+    let validatedGroupId: string | null = null
+    if (inviteCode) {
+      const validation = await this.inviteCodeService.validate({ code: inviteCode })
+      if (!validation.valid) {
+        throw new BadRequestException({
+          code: 'AUTH_INVITE_CODE_INVALID',
+          message: validation.message,
+        })
+      }
+      validatedGroupId = validation.groupId
+      this.logger.log(`Invite code ${inviteCode} validated, groupId: ${validatedGroupId}`)
+    }
+
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, this.BCRYPT_SALT_ROUNDS)
 
@@ -287,6 +318,30 @@ export class AuthService {
 
     this.logger.log(`New user registered with password: ${phone}`)
 
+    // 更新邀请码使用次数
+    if (inviteCode) {
+      try {
+        await this.inviteCodeService.use(inviteCode)
+        this.logger.log(`Invite code ${inviteCode} usage count incremented`)
+      } catch (error) {
+        // 邀请码使用失败不影响注册，记录日志即可
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        this.logger.warn(`Failed to update invite code usage: ${errorMessage}`)
+      }
+    }
+
+    // 根据邀请码分配群组
+    if (validatedGroupId) {
+      try {
+        await this.roundTableService.addUserToGroup(user.id, validatedGroupId)
+        this.logger.log(`User ${user.id} added to group ${validatedGroupId} via invite code`)
+      } catch (error) {
+        // 群组分配失败不影响注册，记录日志即可
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        this.logger.warn(`Failed to add user to group: ${errorMessage}`)
+      }
+    }
+
     // 生成 JWT Token
     const token = await this.generateToken(user)
     const expiresIn = this.TOKEN_EXPIRY
@@ -297,6 +352,7 @@ export class AuthService {
         user: this.toUserResponse(user),
         token,
         expiresIn,
+        groupId: validatedGroupId,
       },
     }
   }
@@ -519,7 +575,7 @@ export class AuthService {
   private toUserResponse(user: User): UserResponse {
     // 使用对象展开并显式排除 password 字段
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...rest } = user
+    const { password: _password, ...rest } = user
     return rest
   }
 
