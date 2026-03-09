@@ -9,6 +9,7 @@ import { User } from '../user/entities/user.entity'
 import { GroupMeetingController } from './group-meeting.controller'
 import { GroupMeetingService } from './group-meeting.service'
 import { NotificationModule } from '../notification/notification.module'
+import { AuthModule } from '../auth/auth.module'
 
 /**
  * 群组会议模块
@@ -18,6 +19,7 @@ import { NotificationModule } from '../notification/notification.module'
   imports: [
     TypeOrmModule.forFeature([GroupMeeting, RoundTableParticipant, RoundTable, Event, UserEvent, User]),
     NotificationModule,
+    AuthModule,
   ],
   controllers: [GroupMeetingController],
   providers: [GroupMeetingService],
