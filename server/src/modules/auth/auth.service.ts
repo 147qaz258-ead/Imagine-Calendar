@@ -64,9 +64,23 @@ export class AuthService {
     // 初始化 Redis 连接 - 支持 Upstash 云部署
     const redisUrl = this.configService.get<string>('REDIS_URL')
 
+    const redisOptions = {
+      connectTimeout: 10000, // 连接超时 10 秒
+      commandTimeout: 5000, // 命令超时 5 秒
+      maxRetriesPerRequest: 3, // 每个命令最多重试 3 次
+      retryStrategy: (times: number) => {
+        if (times > 3) {
+          this.logger.error('Redis connection failed after 3 retries')
+          return null // 停止重试
+        }
+        return Math.min(times * 100, 2000) // 重试延迟
+      },
+    }
+
     if (redisUrl) {
       // 云部署使用 URL 连接（Upstash 需要 TLS）
       this.redis = new Redis(redisUrl, {
+        ...redisOptions,
         tls: {
           rejectUnauthorized: false,
         },
@@ -76,6 +90,7 @@ export class AuthService {
       this.redis = new Redis({
         host: this.configService.get<string>('REDIS_HOST', 'localhost'),
         port: this.configService.get<number>('REDIS_PORT', 6379),
+        ...redisOptions,
       })
     }
 
