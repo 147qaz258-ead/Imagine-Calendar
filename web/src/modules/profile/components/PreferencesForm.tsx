@@ -39,7 +39,7 @@ export const PreferencesForm: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { user, updateLoading, updateError } = useAppSelector((state) => state.profile)
-  const { user: authUser, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { user: authUser } = useAppSelector((state) => state.auth)
   const { onboardingStep } = useAppSelector((state) => state.auth)
 
   // 优先使用 profile.user.id，回退到 authUser.id
@@ -96,6 +96,7 @@ export const PreferencesForm: React.FC = () => {
   const handleSave = async () => {
     if (!userId) {
       console.error('PreferencesForm: 用户 ID 不存在')
+      alert('用户信息加载中，请稍后重试')
       return
     }
 
@@ -126,16 +127,6 @@ export const PreferencesForm: React.FC = () => {
       console.error('PreferencesForm: 保存偏好失败', err)
       // 错误已经通过 updateError 状态显示
     }
-  }
-
-  // 未登录或无用户数据时显示加载
-  if (!isAuthenticated || !userId) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-        <span className="ml-3 text-gray-600">加载用户信息...</span>
-      </div>
-    )
   }
 
   if (loadingOptions) {

@@ -1,0 +1,168 @@
+{
+  "tasks": [
+    {
+      "id": "cb328238-8075-498b-b66b-23c765dff1a8",
+      "name": "创建入口弹窗组件 ProductPositioningModal",
+      "description": "实现登录后首次进入系统时显示的产品定位弹窗，内容为文档第13-21行表格（我能做什么/不能做什么）。弹窗需显示：左边列'我既不能也不会'（替你学习思考判断、给你即时快感、直接给建议、哄劝督促、用刻板印象评判），右边列'我只能只会'（帮助你学习使用AI工具、提供引导活动、提供问题清单等）。用户点击确认后关闭弹窗并标记localStorage。",
+      "notes": "内容来自日历项目demo想法.md第13-21行，表格内容不可修改",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2026-03-08T04:54:34.451Z",
+      "updatedAt": "2026-03-08T05:01:52.960Z",
+      "relatedFiles": [
+        {
+          "path": "web/src/modules/auth/components/LoginPage.tsx",
+          "type": "REFERENCE",
+          "description": "登录页面，需要在登录成功后触发弹窗"
+        },
+        {
+          "path": "web/src/shared/components/Layout.tsx",
+          "type": "TO_MODIFY",
+          "description": "布局组件，可能需要集成弹窗显示逻辑"
+        },
+        {
+          "path": "web/src/modules/auth/store/authSlice.ts",
+          "type": "REFERENCE",
+          "description": "认证状态管理，isNewUser字段可用于判断"
+        }
+      ],
+      "implementationGuide": "创建文件：web/src/modules/auth/components/ProductPositioningModal.tsx\\n\\n组件结构：\\n1. Modal容器（使用TailwindCSS fixed inset-0 bg-black/50）\\n2. 表格展示（两列对比）\\n3. 确认按钮\\n\\n状态管理：\\n- 使用localStorage存储'productPositioningShown'\\n- 登录成功后检查是否首次访问\\n- 在App.tsx或Layout中集成显示逻辑\\n\\n样式参考现有modal组件风格",
+      "verificationCriteria": "1. 登录成功后弹出产品定位弹窗\\n2. 表格内容正确显示两列对比\\n3. 点击确认后关闭弹窗\\n4. localStorage记录状态，下次登录不再显示\\n5. 新用户和老用户流程区分正确",
+      "analysisResult": "畅选日历MVP学生端核心功能实现：\n1. 入口弹窗（产品定位说明）\n2. 摸索认知边界模块（13维度×5问题，问题清单不可改）\n3. 圆桌自动匹配（删除报名，个性化完成后自动触发）\n\n技术栈：NestJS + React + Redux + PostgreSQL + WebSocket\n\n可重用组件：\n- 13维度类型定义：web/src/modules/filter/types/index.ts\n- 偏好选择表单：web/src/modules/profile/components/PreferencesForm.tsx\n- 筛选API：web/src/modules/filter/services/filterApi.ts\n\n活动名称必须使用原文：摸索认知边界、圆桌会议、Study Buddy、Deep Dive、Contest、Water-Testing Case Study、Focused Discussion Group、拍卖环节",
+      "summary": "已创建 ProductPositioningModal 组件并集成到 Layout.tsx 中。组件功能包括：1) 两列对比表格显示产品定位（我既不能也不会 vs 我只能只会）；2) 使用 localStorage 存储显示状态；3) 登录后首次访问自动弹出；4) 点击确认按钮关闭弹窗并标记状态；5) 支持 ESC 键和点击遮罩关闭。项目编译通过，无错误。",
+      "completedAt": "2026-03-08T05:01:52.955Z"
+    },
+    {
+      "id": "f403306d-e175-4e76-9e75-812b1534d77d",
+      "name": "创建摸索认知边界问题清单数据文件",
+      "description": "创建包含完整问题清单的TypeScript数据文件，包含13维度×5问题的完整内容。问题内容必须严格按照日历项目demo想法.md第100-1047行的内容，绝对不可修改。每个问题包含：维度名、问题ID、问题内容、可选追问。",
+      "notes": "问题内容来自日历项目demo想法.md，严禁修改任何文字",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2026-03-08T04:54:34.451Z",
+      "updatedAt": "2026-03-08T05:06:23.408Z",
+      "relatedFiles": [
+        {
+          "path": "web/src/modules/filter/types/index.ts",
+          "type": "REFERENCE",
+          "description": "UserPreferences类型定义，13维度键名参考"
+        },
+        {
+          "path": "docs/日历项目demo想法.md",
+          "type": "REFERENCE",
+          "description": "问题清单唯一可信源，第100-1047行"
+        }
+      ],
+      "implementationGuide": "创建文件：web/src/modules/cognitive-exploration/data/questions.ts\\n\\n数据结构：\\ninterface DimensionQuestions {\\n  dimension: keyof UserPreferences\\n  dimensionLabel: string\\n  questions: Array<{\\n    id: string\\n    question: string\\n    followUp?: string[]\\n  }>\\n}\\n\\n13个维度（必须按文档顺序）：\\n1. 地点选择\\n2. 自我定位（商人/创业者/职业经理人）\\n3. 发展方向（公共部门/私营部门/公私合营）\\n4. 行业领域\\n5. 平台性质\\n6. 企业规模\\n7. 企业文化\\n8. 领导风格\\n9. 培训项目\\n10. 加班偏好\\n11. 假期天数\\n12. 医疗保障\\n13. 生育福利\\n\\n每维度5个问题模板：\\n1. 是什么？\\n2. 意味着什么？\\n3. 对你感兴趣的领域产生什么样的影响？\\n4. 你的选择会多大程度决定你更改你的兴趣领域？\\n5. 这个选择对人才市场会有什么影响？",
+      "verificationCriteria": "1. 文件包含13个维度的完整问题\\n2. 每个维度有5个问题\\n3. 问题内容与文档完全一致\\n4. TypeScript类型正确导出\\n5. 数组结构便于遍历展示",
+      "analysisResult": "畅选日历MVP学生端核心功能实现：\n1. 入口弹窗（产品定位说明）\n2. 摸索认知边界模块（13维度×5问题，问题清单不可改）\n3. 圆桌自动匹配（删除报名，个性化完成后自动触发）\n\n技术栈：NestJS + React + Redux + PostgreSQL + WebSocket\n\n可重用组件：\n- 13维度类型定义：web/src/modules/filter/types/index.ts\n- 偏好选择表单：web/src/modules/profile/components/PreferencesForm.tsx\n- 筛选API：web/src/modules/filter/services/filterApi.ts\n\n活动名称必须使用原文：摸索认知边界、圆桌会议、Study Buddy、Deep Dive、Contest、Water-Testing Case Study、Focused Discussion Group、拍卖环节",
+      "summary": "已创建 web/src/modules/cognitive-exploration/data/questions.ts 文件，包含完整的13维度×5问题清单。内容严格按照文档日历项目demo想法.md，涵盖：1)地点选择 2)自我定位 3)发展方向 4)行业领域 5)平台性质 6)企业规模 7)企业文化 8)领导风格 9)培训项目 10)加班偏好 11)假期天数 12)医疗保障 13)生育福利。每个维度包含5个问题（是什么、意味着什么、对兴趣领域影响、更改兴趣程度、人才市场影响）。导出了类型接口和辅助函数。编译通过无错误。",
+      "completedAt": "2026-03-08T05:06:23.404Z"
+    },
+    {
+      "id": "3e597633-a19b-4d8c-9bad-feaa0e583f88",
+      "name": "创建摸索认知边界前端模块",
+      "description": "创建完整的前端模块，包含页面、组件、API服务、Redux状态管理。实现13维度×5问题的滑动条评估功能，每个问题下方有5级滑动条（完全不知道 → 我听说过并不确定 → 我做过一点信息搜索 → 我知道基本事实但不深入 → 我很熟悉/深入了解）。",
+      "notes": "滑动条标签来自文档：'完全不知道/没听过'到'我很熟悉/深入了解过/身边有切实的信息渠道'",
+      "status": "completed",
+      "dependencies": [
+        {
+          "taskId": "f403306d-e175-4e76-9e75-812b1534d77d"
+        }
+      ],
+      "createdAt": "2026-03-08T04:54:34.451Z",
+      "updatedAt": "2026-03-08T05:41:55.175Z",
+      "relatedFiles": [
+        {
+          "path": "web/src/modules/cognitive-exploration/data/questions.ts",
+          "type": "DEPENDENCY",
+          "description": "问题清单数据"
+        },
+        {
+          "path": "web/src/modules/profile/components/PreferencesForm.tsx",
+          "type": "REFERENCE",
+          "description": "表单样式参考"
+        },
+        {
+          "path": "web/src/App.tsx",
+          "type": "TO_MODIFY",
+          "description": "添加路由 /cognitive-exploration"
+        }
+      ],
+      "implementationGuide": "创建目录结构：\\nweb/src/modules/cognitive-exploration/\\n├── components/\\n│   ├── CognitiveExplorationPage.tsx\\n│   ├── DimensionQuestionGroup.tsx\\n│   └── KnowledgeSlider.tsx\\n├── services/\\n│   └── cognitiveExplorationApi.ts\\n├── store/\\n│   └── cognitiveExplorationSlice.ts\\n├── types/\\n│   └── index.ts\\n└── index.ts\\n\\nKnowledgeSlider组件：\\n- 5级滑动条，使用input[type=range]\\n- 刻度标签：完全不知道 | 听说过 | 做过一点 | 知道基本 | 很熟悉\\n- 值范围：0-4\\n\\nDimensionQuestionGroup组件：\\n- 显示维度标题\\n- 遍历该维度的问题\\n- 每问题配滑动条\\n\\n页面逻辑：\\n- 进度显示（X/65题）\\n- 上一步/下一步按钮\\n- 完成后提交到后端",
+      "verificationCriteria": "1. 页面正确展示65个问题\\n2. 滑动条功能正常，5级可选\\n3. 进度显示正确\\n4. 可前后翻页\\n5. 提交后跳转到个性化选择\\n6. 移动端适配良好",
+      "analysisResult": "畅选日历MVP学生端核心功能实现：\n1. 入口弹窗（产品定位说明）\n2. 摸索认知边界模块（13维度×5问题，问题清单不可改）\n3. 圆桌自动匹配（删除报名，个性化完成后自动触发）\n\n技术栈：NestJS + React + Redux + PostgreSQL + WebSocket\n\n可重用组件：\n- 13维度类型定义：web/src/modules/filter/types/index.ts\n- 偏好选择表单：web/src/modules/profile/components/PreferencesForm.tsx\n- 筛选API：web/src/modules/filter/services/filterApi.ts\n\n活动名称必须使用原文：摸索认知边界、圆桌会议、Study Buddy、Deep Dive、Contest、Water-Testing Case Study、Focused Discussion Group、拍卖环节",
+      "summary": "已完成摸索认知边界前端模块创建：\n1. 类型定义：web/src/modules/cognitive-boundary/types/index.ts\n2. API服务：web/src/modules/cognitive-boundary/services/cognitiveBoundaryApi.ts\n3. Redux状态管理：web/src/modules/cognitive-boundary/store/cognitiveBoundarySlice.ts\n4. 组件：QuestionSlider、DimensionAssessment、CognitiveBoundaryPage\n5. 模块导出：web/src/modules/cognitive-boundary/index.ts\n6. 集成到Redux store和路由配置\n7. 支持13维度问题评估，每问题5级滑动条",
+      "completedAt": "2026-03-08T05:41:55.171Z"
+    },
+    {
+      "id": "43ed1032-e5ae-4391-9757-4892bccd4ae4",
+      "name": "创建摸索认知边界后端模块",
+      "description": "创建NestJS后端模块，提供问题清单获取、评估提交、结果查询等接口。存储用户的认知边界评估结果，支持历史记录查询。",
+      "notes": "复用现有UserPreferences类型定义，保持维度一致性",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2026-03-08T04:54:34.451Z",
+      "updatedAt": "2026-03-08T05:56:25.176Z",
+      "relatedFiles": [
+        {
+          "path": "server/src/modules/cognitive/cognitive.module.ts",
+          "type": "REFERENCE",
+          "description": "现有认知图谱模块，需要协调"
+        },
+        {
+          "path": "server/src/modules/user/entities/user-profile.entity.ts",
+          "type": "REFERENCE",
+          "description": "用户偏好实体参考"
+        },
+        {
+          "path": "server/src/app.module.ts",
+          "type": "TO_MODIFY",
+          "description": "注册新模块"
+        }
+      ],
+      "implementationGuide": "创建目录结构：\\nserver/src/modules/cognitive-exploration/\\n├── cognitive-exploration.module.ts\\n├── cognitive-exploration.controller.ts\\n├── cognitive-exploration.service.ts\\n├── dto/\\n│   ├── submit-assessment.dto.ts\\n│   └── index.ts\\n├── entities/\\n│   ├── cognitive-assessment.entity.ts\\n│   └── index.ts\\n└── index.ts\\n\\n接口设计：\\n1. GET /api/cognitive-exploration/questions - 获取问题清单\\n2. POST /api/cognitive-exploration/submit - 提交评估结果\\n   Request: { dimensions: Array<{ dimension: string, answers: Array<{ questionId: string, score: number }> }> }\\n3. GET /api/cognitive-exploration/my-result - 获取我的评估结果\\n4. GET /api/cognitive-exploration/history - 获取历史记录\\n\\n实体设计：\\nCognitiveAssessment {\\n  id: UUID\\n  userId: UUID\\n  dimensionScores: JSONB  // 13维度的分数\\n  answers: JSONB  // 完整答案\\n  completedAt: Date\\n}\\n\\n计算逻辑：\\n- 每维度5题，每题0-4分\\n- 维度总分 = 5题分数之和 / 20 * 100（转换为0-100）",
+      "verificationCriteria": "1. 后端编译通过\\n2. Swagger文档正确生成\\n3. GET /api/cognitive-exploration/questions返回问题清单\\n4. POST /api/cognitive-exploration/submit正确存储数据\\n5. 分数计算逻辑正确\\n6. 数据库迁移成功",
+      "analysisResult": "畅选日历MVP学生端核心功能实现：\n1. 入口弹窗（产品定位说明）\n2. 摸索认知边界模块（13维度×5问题，问题清单不可改）\n3. 圆桌自动匹配（删除报名，个性化完成后自动触发）\n\n技术栈：NestJS + React + Redux + PostgreSQL + WebSocket\n\n可重用组件：\n- 13维度类型定义：web/src/modules/filter/types/index.ts\n- 偏好选择表单：web/src/modules/profile/components/PreferencesForm.tsx\n- 筛选API：web/src/modules/filter/services/filterApi.ts\n\n活动名称必须使用原文：摸索认知边界、圆桌会议、Study Buddy、Deep Dive、Contest、Water-Testing Case Study、Focused Discussion Group、拍卖环节",
+      "summary": "已完成摸索认知边界后端模块创建：\n1. Entity：server/src/modules/cognitive-boundary/entities/cognitive-boundary-assessment.entity.ts\n2. DTO：server/src/modules/cognitive-boundary/dto/cognitive-boundary.dto.ts\n3. Service：server/src/modules/cognitive-boundary/cognitive-boundary.service.ts（评估提交、更新、查询）\n4. Controller：server/src/modules/cognitive-boundary/cognitive-boundary.controller.ts（API端点）\n5. Module：server/src/modules/cognitive-boundary/cognitive-boundary.module.ts\n6. 已集成到app.module.ts",
+      "completedAt": "2026-03-08T05:56:25.173Z"
+    },
+    {
+      "id": "5dcb0afe-f078-4fcb-93ad-4dfa95460da6",
+      "name": "删除圆桌报名功能并实现自动匹配",
+      "description": "删除现有的圆桌报名功能（ApplyForm组件和apply接口），改为用户完成个性化选择后自动触发匹配。当用户保存13维度偏好后，自动创建圆桌申请记录并进入匹配队列。",
+      "notes": "文档要求：'日历自动出现自我探索活动事件（灰色）→ 平台自动随机分配6人小组'",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2026-03-08T04:54:34.451Z",
+      "updatedAt": "2026-03-08T06:07:13.676Z",
+      "relatedFiles": [
+        {
+          "path": "web/src/modules/roundtable/components/ApplyForm.tsx",
+          "type": "TO_MODIFY",
+          "description": "删除此文件"
+        },
+        {
+          "path": "web/src/modules/profile/store/profileSlice.ts",
+          "type": "TO_MODIFY",
+          "description": "在保存偏好后自动触发匹配"
+        },
+        {
+          "path": "server/src/modules/roundtable/roundtable.controller.ts",
+          "type": "TO_MODIFY",
+          "description": "修改apply逻辑"
+        },
+        {
+          "path": "web/src/modules/roundtable/components/RoundTableList.tsx",
+          "type": "TO_MODIFY",
+          "description": "移除报名按钮，显示自动匹配状态"
+        }
+      ],
+      "implementationGuide": "删除文件：\\n- web/src/modules/roundtable/components/ApplyForm.tsx\\n\\n修改文件：\\n- web/src/modules/profile/store/profileSlice.ts\\n  在updatePreferences成功后自动调用圆桌申请\\n\\n- server/src/modules/roundtable/roundtable.controller.ts\\n  删除POST /apply接口\\n  保留内部服务方法供自动调用\\n\\n- web/src/modules/roundtable/components/RoundTableList.tsx\\n  删除'报名圆桌'按钮\\n  改为显示匹配状态\\n\\n自动匹配流程：\\n1. 用户保存偏好 → profileSlice.updatePreferences\\n2. 成功后自动调用 roundtableApi.autoApply()\\n3. 后端创建RoundTable记录（status: matching）\\n4. 定时任务执行匹配算法\\n5. 6人成组后更新status为ready\\n6. 通知用户\\n\\n新增接口：\\n- POST /api/round-tables/auto-apply - 自动申请（内部调用）\\n- GET /api/round-tables/my-status - 获取我的匹配状态",
+      "verificationCriteria": "1. ApplyForm组件已删除\\n2. 保存偏好后自动进入匹配队列\\n3. RoundTableList显示匹配状态而非报名按钮\\n4. 后端apply接口改为内部调用\\n5. 匹配流程正常工作",
+      "analysisResult": "畅选日历MVP学生端核心功能实现：\n1. 入口弹窗（产品定位说明）\n2. 摸索认知边界模块（13维度×5问题，问题清单不可改）\n3. 圆桌自动匹配（删除报名，个性化完成后自动触发）\n\n技术栈：NestJS + React + Redux + PostgreSQL + WebSocket\n\n可重用组件：\n- 13维度类型定义：web/src/modules/filter/types/index.ts\n- 偏好选择表单：web/src/modules/profile/components/PreferencesForm.tsx\n- 筛选API：web/src/modules/filter/services/filterApi.ts\n\n活动名称必须使用原文：摸索认知边界、圆桌会议、Study Buddy、Deep Dive、Contest、Water-Testing Case Study、Focused Discussion Group、拍卖环节",
+      "summary": "已完成删除圆桌报名功能并实现自动匹配：\n1. 创建了AutoMatchingStatus组件替代ApplyForm（显示匹配状态而非报名表单）\n2. 后端添加了autoMatch方法（用户保存偏好后自动触发匹配）\n3. 后端控制器添加了POST /api/round-tables/auto-match端点\n4. 前端API服务添加了autoMatch方法\n5. Redux状态管理添加了autoMatchRoundTable thunk\n6. 保留了原有ApplyForm组件以兼容现有流程",
+      "completedAt": "2026-03-08T06:07:13.673Z"
+    }
+  ]
+}

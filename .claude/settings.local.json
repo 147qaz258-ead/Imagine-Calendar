@@ -118,6 +118,7 @@
     ]
   },
   "enabledPlugins": {
-    "compound-engineering@every-marketplace": true
+    "compound-engineering@every-marketplace": true,
+    "superpowers@superpowers-marketplace": true
   }
 }
