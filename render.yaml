@@ -21,4 +21,4 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: CORS_ORIGINS
-        value: https://career-calendar.vercel.app
+        value: https://career-calendar.vercel.app,https://web-oneday1.vercel.app
