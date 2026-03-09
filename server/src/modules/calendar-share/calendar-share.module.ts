@@ -6,6 +6,7 @@ import { RoundTable } from '../roundtable/entities/roundtable.entity'
 import { Event } from '../event/entities/event.entity'
 import { CalendarShareController } from './calendar-share.controller'
 import { CalendarShareService } from './calendar-share.service'
+import { AuthModule } from '../auth/auth.module'
 
 /**
  * 日历共享模块
@@ -14,6 +15,7 @@ import { CalendarShareService } from './calendar-share.service'
 @Module({
   imports: [
     TypeOrmModule.forFeature([CalendarShare, RoundTableParticipant, RoundTable, Event]),
+    AuthModule,
   ],
   controllers: [CalendarShareController],
   providers: [CalendarShareService],
