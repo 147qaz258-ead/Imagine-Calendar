@@ -39,7 +39,11 @@ export const PreferencesForm: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { user, updateLoading, updateError } = useAppSelector((state) => state.profile)
+  const { user: authUser, isAuthenticated } = useAppSelector((state) => state.auth)
   const { onboardingStep } = useAppSelector((state) => state.auth)
+
+  // 优先使用 profile.user.id，回退到 authUser.id
+  const userId = user?.id || authUser?.id
 
   // 筛选选项
   const [filterOptions, setFilterOptions] = useState<Record<string, FilterOption[]>>({})
@@ -90,30 +94,48 @@ export const PreferencesForm: React.FC = () => {
 
   // 保存偏好
   const handleSave = async () => {
-    if (!user?.id) return
-
-    const result = await dispatch(
-      updatePreferences({
-        userId: user.id,
-        data: { preferences },
-      })
-    ).unwrap()
-
-    if (result) {
-      // 判断是否在引导流程中
-      const isInOnboarding = onboardingStep === 'preferences'
-
-      if (isInOnboarding) {
-        // 完成引导流程
-        dispatch(setOnboardingStep('completed'))
-        // 触发自动匹配群组
-        dispatch(autoMatchRoundTable())
-        // 导航到日历页面
-        navigate('/calendar', { replace: true })
-      } else {
-        alert(`保存成功！匹配度评分: ${result.matchingScore}%`)
-      }
+    if (!userId) {
+      console.error('PreferencesForm: 用户 ID 不存在')
+      return
     }
+
+    try {
+      const result = await dispatch(
+        updatePreferences({
+          userId,
+          data: { preferences },
+        })
+      ).unwrap()
+
+      if (result) {
+        // 判断是否在引导流程中
+        const isInOnboarding = onboardingStep === 'preferences'
+
+        if (isInOnboarding) {
+          // 完成引导流程
+          dispatch(setOnboardingStep('completed'))
+          // 触发自动匹配群组
+          dispatch(autoMatchRoundTable())
+          // 导航到日历页面
+          navigate('/calendar', { replace: true })
+        } else {
+          alert(`保存成功！匹配度评分: ${result.matchingScore}%`)
+        }
+      }
+    } catch (err) {
+      console.error('PreferencesForm: 保存偏好失败', err)
+      // 错误已经通过 updateError 状态显示
+    }
+  }
+
+  // 未登录或无用户数据时显示加载
+  if (!isAuthenticated || !userId) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <span className="ml-3 text-gray-600">加载用户信息...</span>
+      </div>
+    )
   }
 
   if (loadingOptions) {

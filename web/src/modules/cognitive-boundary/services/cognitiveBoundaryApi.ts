@@ -16,24 +16,22 @@ export const cognitiveBoundaryApi = {
    * 获取当前用户的认知边界评估
    */
   async getAssessment(): Promise<GetAssessmentResponse> {
-    const response = await apiClient.get<GetAssessmentResponse>(`${BASE_URL}/assessment`)
-    return response.data
+    // apiClient 拦截器已经返回 response.data，无需再次调用 .data
+    return apiClient.get<GetAssessmentResponse>(`${BASE_URL}/assessment`)
   },
 
   /**
    * 获取指定用户的认知边界评估
    */
   async getUserAssessment(userId: string): Promise<GetAssessmentResponse> {
-    const response = await apiClient.get<GetAssessmentResponse>(`${BASE_URL}/assessment/${userId}`)
-    return response.data
+    return apiClient.get<GetAssessmentResponse>(`${BASE_URL}/assessment/${userId}`)
   },
 
   /**
    * 提交问题评估
    */
   async submitAssessment(data: SubmitAssessmentRequest): Promise<SubmitAssessmentResponse> {
-    const response = await apiClient.post<SubmitAssessmentResponse>(`${BASE_URL}/assessment`, data)
-    return response.data
+    return apiClient.post<SubmitAssessmentResponse>(`${BASE_URL}/assessment`, data)
   },
 
   /**
@@ -43,11 +41,10 @@ export const cognitiveBoundaryApi = {
     questionId: string,
     level: number
   ): Promise<SubmitAssessmentResponse> {
-    const response = await apiClient.put<SubmitAssessmentResponse>(
+    return apiClient.put<SubmitAssessmentResponse>(
       `${BASE_URL}/assessment/${questionId}`,
       { level }
     )
-    return response.data
   },
 
   /**
@@ -58,16 +55,14 @@ export const cognitiveBoundaryApi = {
     data: CognitiveBoundaryAssessment[]
     message?: string
   }> {
-    const response = await apiClient.get(`${BASE_URL}/assessment/history`)
-    return response.data
+    return apiClient.get(`${BASE_URL}/assessment/history`)
   },
 
   /**
    * 删除评估记录
    */
   async deleteAssessment(assessmentId: string): Promise<{ success: boolean; message?: string }> {
-    const response = await apiClient.delete(`${BASE_URL}/assessment/${assessmentId}`)
-    return response.data
+    return apiClient.delete(`${BASE_URL}/assessment/${assessmentId}`)
   },
 }
 
