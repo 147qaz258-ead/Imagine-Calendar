@@ -24,7 +24,7 @@ export function SixPeopleGroup({
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        圆桌成员 ({participants.length}/{maxParticipants})
+        群组成员 ({participants.length}/{maxParticipants})
       </h3>
 
       {/* 六边形布局 */}

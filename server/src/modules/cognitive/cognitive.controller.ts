@@ -1,8 +1,8 @@
 import {
   Controller,
   Get,
-  Put,
   Post,
+  Put,
   Param,
   Body,
   Query,
@@ -13,13 +13,19 @@ import {
 import { CognitiveService } from './cognitive.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
-import { UpdateDimensionDto, CognitiveHistoryQueryDto, CompareCognitiveMapDto } from './dto'
+import {
+  UpdateDimensionDto,
+  CognitiveHistoryQueryDto,
+  CompareCognitiveMapDto,
+  CreateCognitiveVersionDto,
+  CompareVersionsQueryDto,
+} from './dto'
 
 interface RequestWithUser {
   user: { id: string; phone: string }
 }
 
-@ApiTags('cognitive-map')
+@ApiTags('cognitive')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller()
@@ -68,8 +74,53 @@ export class CognitiveController {
    * 对应 API-CONTRACT.md 7.4
    */
   @Post('cognitive-map/compare')
-  @ApiOperation({ summary: '对比认知图谱' })
+  @ApiOperation({ summary: '对比多个用户的认知图谱' })
   async compareCognitiveMaps(@Body() dto: CompareCognitiveMapDto) {
     return this.cognitiveService.compareCognitiveMaps(dto)
+  }
+
+  // ============ 版本管理接口 ============
+
+  /**
+   * 获取当前用户所有认知版本
+   * GET /api/cognitive/versions
+   */
+  @Get('cognitive/versions')
+  @ApiOperation({ summary: '获取所有认知版本' })
+  async getCognitiveVersions(@Request() req: RequestWithUser) {
+    return this.cognitiveService.getCognitiveVersions(req.user.id)
+  }
+
+  /**
+   * 创建新版本
+   * POST /api/cognitive/version
+   */
+  @Post('cognitive/version')
+  @ApiOperation({ summary: '创建认知版本' })
+  async createCognitiveVersion(
+    @Request() req: RequestWithUser,
+    @Body() dto: CreateCognitiveVersionDto,
+  ) {
+    return this.cognitiveService.createCognitiveVersion(req.user.id, dto)
+  }
+
+  /**
+   * 获取单个版本详情
+   * GET /api/cognitive/versions/:id
+   */
+  @Get('cognitive/versions/:id')
+  @ApiOperation({ summary: '获取认知版本详情' })
+  async getCognitiveVersionById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.cognitiveService.getCognitiveVersionById(id)
+  }
+
+  /**
+   * 对比两个版本
+   * GET /api/cognitive/compare?v1=xxx&v2=xxx
+   */
+  @Get('cognitive/compare')
+  @ApiOperation({ summary: '对比两个认知版本' })
+  async compareVersions(@Query() query: CompareVersionsQueryDto) {
+    return this.cognitiveService.compareVersions(query)
   }
 }

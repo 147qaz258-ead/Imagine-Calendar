@@ -14,6 +14,8 @@ import type {
   PasswordLoginRequest,
   RegisterRequest,
   RegisterResponse,
+  ValidateInviteCodeRequest,
+  ValidateInviteCodeResponse,
 } from '../types'
 
 export const authApi = {
@@ -36,6 +38,13 @@ export const authApi = {
    */
   loginWithPassword: async (data: PasswordLoginRequest): Promise<LoginResponse> => {
     return apiClient.post('/auth/login-password', data)
+  },
+
+  /**
+   * 验证邀请码
+   */
+  validateInviteCode: async (data: ValidateInviteCodeRequest): Promise<ValidateInviteCodeResponse> => {
+    return apiClient.post('/invite-codes/validate', data)
   },
 
   /**

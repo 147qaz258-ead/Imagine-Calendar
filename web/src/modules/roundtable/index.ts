@@ -1,5 +1,5 @@
 /**
- * 圆桌讨论模块入口
+ * 群组模块入口
  */
 // 组件导出
 export { RoundTableCard, ParticipantAvatar } from './components/RoundTableCard'

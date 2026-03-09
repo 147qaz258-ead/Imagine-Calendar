@@ -111,3 +111,43 @@ export class CompareCognitiveMapDto {
   @IsString({ each: true })
   userIds: string[]
 }
+
+/**
+ * 创建认知版本请求
+ * POST /api/cognitive/versions
+ */
+export class CreateCognitiveVersionDto {
+  @ApiProperty({ required: false, description: '版本名称' })
+  @IsOptional()
+  @IsString()
+  versionName?: string
+
+  @ApiProperty({ required: false, description: '版本描述' })
+  @IsOptional()
+  @IsString()
+  description?: string
+
+  @ApiProperty({ required: false, description: '关联的圆桌ID' })
+  @IsOptional()
+  @IsString()
+  roundTableId?: string
+
+  @ApiProperty({ required: false, description: '触发类型' })
+  @IsOptional()
+  @IsString()
+  triggerType?: string
+}
+
+/**
+ * 对比版本查询参数
+ * GET /api/cognitive/compare
+ */
+export class CompareVersionsQueryDto {
+  @ApiProperty({ description: '版本1 ID' })
+  @IsString()
+  v1: string
+
+  @ApiProperty({ description: '版本2 ID' })
+  @IsString()
+  v2: string
+}

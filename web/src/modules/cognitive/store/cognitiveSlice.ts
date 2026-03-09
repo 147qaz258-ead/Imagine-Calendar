@@ -7,6 +7,7 @@ import type {
   CognitiveMap,
   UpdateDimensionRequest,
   CognitiveHistoryQuery,
+  CognitiveVersionListItem,
 } from '../types'
 import { cognitiveApi } from '../services/cognitiveApi'
 
@@ -15,6 +16,7 @@ const initialState: CognitiveState = {
   cognitiveMap: null,
   history: [],
   trends: [],
+  versions: [],
   loading: false,
   error: null,
 }
@@ -76,6 +78,23 @@ export const fetchCognitiveHistory = createAsyncThunk(
   }
 )
 
+// 获取认知版本列表
+export const fetchCognitiveVersions = createAsyncThunk(
+  'cognitive/fetchCognitiveVersions',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await cognitiveApi.getCognitiveVersions()
+      if (!response.success) {
+        return rejectWithValue(response.message || '获取版本列表失败')
+      }
+      return response.data
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return rejectWithValue(err.message || '获取版本列表失败')
+    }
+  }
+)
+
 // Slice
 const cognitiveSlice = createSlice({
   name: 'cognitive',
@@ -133,6 +152,21 @@ const cognitiveSlice = createSlice({
         state.trends = action.payload.trend
       })
       .addCase(fetchCognitiveHistory.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+
+    // 获取认知版本列表
+    builder
+      .addCase(fetchCognitiveVersions.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchCognitiveVersions.fulfilled, (state, action) => {
+        state.loading = false
+        state.versions = action.payload
+      })
+      .addCase(fetchCognitiveVersions.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

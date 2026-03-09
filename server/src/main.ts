@@ -1,12 +1,14 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
+import { NestExpressApplication } from '@nestjs/platform-express'
+import { join } from 'path'
 import { AppModule } from './app.module'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   // 全局验证管道
   app.useGlobalPipes(
@@ -22,6 +24,11 @@ async function bootstrap() {
 
   // 全局日志拦截器
   app.useGlobalInterceptors(new LoggingInterceptor())
+
+  // 静态文件服务 - 上传的文件
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  })
 
   // CORS 配置
   app.enableCors({

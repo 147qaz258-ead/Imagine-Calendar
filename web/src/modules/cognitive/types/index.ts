@@ -103,11 +103,101 @@ export interface CompareCognitiveMapResponse {
   message?: string
 }
 
+// ============ 版本管理类型 ============
+
+/** 认知版本列表项 */
+export interface CognitiveVersionListItem {
+  id: string
+  userId: string
+  versionNumber: number
+  versionName: string | null
+  description: string | null
+  triggerType: string | null
+  roundTableId: string | null
+  createdAt: string
+  dimensionCount: number
+  totalScore: number
+}
+
+/** 认知版本详情 */
+export interface CognitiveVersion {
+  id: string
+  userId: string
+  versionNumber: number
+  versionName: string | null
+  description: string | null
+  dimensions: CognitiveDimension[]
+  roundTableId: string | null
+  triggerType: string | null
+  createdAt: string
+}
+
+/** 获取版本列表响应 */
+export interface CognitiveVersionsResponse {
+  success: boolean
+  data: CognitiveVersionListItem[]
+  message?: string
+}
+
+/** 获取单个版本响应 */
+export interface CognitiveVersionResponse {
+  success: boolean
+  data: CognitiveVersion
+  message?: string
+}
+
+/** 创建版本请求 */
+export interface CreateCognitiveVersionRequest {
+  versionName?: string
+  description?: string
+  roundTableId?: string
+  triggerType?: string
+}
+
+/** 维度差异 */
+export interface DimensionDiff {
+  name: string
+  scoreV1: number
+  scoreV2: number
+  change: number
+  changePercent: number
+}
+
+/** 版本对比结果 */
+export interface VersionComparison {
+  v1: {
+    id: string
+    versionNumber: number
+    versionName: string | null
+    createdAt: string
+    dimensions: CognitiveDimension[]
+  }
+  v2: {
+    id: string
+    versionNumber: number
+    versionName: string | null
+    createdAt: string
+    dimensions: CognitiveDimension[]
+  }
+  diffs: DimensionDiff[]
+  overallChange: number
+  improvedDimensions: string[]
+  declinedDimensions: string[]
+}
+
+/** 版本对比响应 */
+export interface CompareVersionsResponse {
+  success: boolean
+  data: VersionComparison
+  message?: string
+}
+
 /** Cognitive 状态 */
 export interface CognitiveState {
   cognitiveMap: CognitiveMap | null
   history: CognitiveHistory[]
   trends: DimensionTrend[]
+  versions: CognitiveVersionListItem[]
   loading: boolean
   error: string | null
 }

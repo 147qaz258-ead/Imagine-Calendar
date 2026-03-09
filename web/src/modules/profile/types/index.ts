@@ -34,6 +34,8 @@ export interface User {
   grade?: string
   studentId?: string
   graduationYear?: number
+  studentIdImageUrl?: string
+  isStudentVerified?: boolean
   preferences?: UserPreferences
   status: UserStatus
   createdAt: string
@@ -89,6 +91,16 @@ export interface UploadStudentCardResponse {
     grade?: string
     studentId?: string
     confidence: number
+  }
+  message?: string
+}
+
+/** 上传学生证图片响应 */
+export interface UploadStudentIdImageResponse {
+  success: boolean
+  data: {
+    studentIdImageUrl: string
+    isStudentVerified: boolean
   }
   message?: string
 }

@@ -48,6 +48,17 @@ export class RoundTableController {
   }
 
   /**
+   * 自动匹配圆桌
+   * POST /api/round-tables/auto-match
+   * 用户完成个性化选择后自动触发
+   */
+  @Post('auto-match')
+  @ApiOperation({ summary: '自动匹配圆桌' })
+  async autoMatch(@Request() req: RequestWithUser) {
+    return this.roundTableService.autoMatch(req.user.id)
+  }
+
+  /**
    * 获取圆桌问题清单
    * GET /api/round-tables/questions
    * 对应 API-CONTRACT.md 6.7
@@ -124,5 +135,38 @@ export class RoundTableController {
   @ApiOperation({ summary: '取消报名' })
   async cancelApplication(@Request() req: RequestWithUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.roundTableService.cancelApplication(req.user.id, id)
+  }
+
+  /**
+   * 确认成为组长
+   * POST /api/round-tables/:id/confirm-leader
+   * TASK-4.2: 组长确认机制完善
+   */
+  @Post(':id/confirm-leader')
+  @ApiOperation({ summary: '确认成为组长' })
+  async confirmAsLeader(@Request() req: RequestWithUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.roundTableService.confirmAsLeader(req.user.id, id)
+  }
+
+  /**
+   * 获取组长确认状态
+   * GET /api/round-tables/:id/leader-status
+   * TASK-4.2: 组长确认机制完善
+   */
+  @Get(':id/leader-status')
+  @ApiOperation({ summary: '获取组长确认状态' })
+  async getLeaderConfirmStatus(@Request() req: RequestWithUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.roundTableService.getLeaderConfirmStatus(id, req.user.id)
+  }
+
+  /**
+   * 获取问题清单完成状态
+   * GET /api/round-tables/:id/questionnaire-status
+   * TASK-4.3: 问题清单完成状态
+   */
+  @Get(':id/questionnaire-status')
+  @ApiOperation({ summary: '获取问题清单完成状态' })
+  async getQuestionnaireStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.roundTableService.getQuestionnaireStatus(id)
   }
 }

@@ -1,11 +1,20 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Like } from 'typeorm'
+import { promises as fsPromises } from 'fs'
+import * as path from 'path'
 import { User, UserStatus } from './entities/user.entity'
 import { UserProfile, UserPreferences } from './entities/user-profile.entity'
 import { School } from './entities/school.entity'
 import { Major } from './entities/major.entity'
 import { UpdateProfileDto, UpdatePreferencesDto, SchoolQueryDto, MajorQueryDto } from './dto'
+
+// MIME type to file extension mapping (security: avoid user-provided extension)
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
 
 /**
  * 用户服务
@@ -89,6 +98,8 @@ export class UserService {
         city: profile.city,
         name: profile.name,
         studentId: profile.studentId,
+        studentIdImageUrl: profile.studentIdImageUrl,
+        isStudentVerified: profile.isStudentVerified,
         preferences: profile.preferences,
         status: user.status,
         createdAt: user.createdAt,
@@ -209,6 +220,87 @@ export class UserService {
       data: {
         preferences: profile.preferences,
         matchingScore,
+      },
+    }
+  }
+
+  /**
+   * 上传学生证图片（存储）
+   * POST /api/users/:id/student-id-image
+   */
+  async uploadStudentIdImage(userId: string, file: Express.Multer.File) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['profile'],
+    })
+
+    if (!user) {
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message: '用户不存在',
+      })
+    }
+
+    if (!file) {
+      throw new BadRequestException({
+        code: 'UPLOAD_FAILED',
+        message: '请上传学生证图片',
+      })
+    }
+
+    // 验证文件类型
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException({
+        code: 'INVALID_FILE_TYPE',
+        message: '仅支持 JPG、PNG、WEBP 格式的图片',
+      })
+    }
+
+    // 验证文件大小（最大 5MB）
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      throw new BadRequestException({
+        code: 'FILE_TOO_LARGE',
+        message: '图片大小不能超过 5MB',
+      })
+    }
+
+    // 创建上传目录（异步）
+    const uploadDir = path.join(process.cwd(), 'uploads', 'student-id')
+    await fsPromises.mkdir(uploadDir, { recursive: true })
+
+    // 安全地获取文件扩展名（从 MIME 类型，而非用户提供的文件名）
+    const fileExt = MIME_TO_EXT[file.mimetype] || 'jpg'
+    const fileName = `${userId}-${Date.now()}.${fileExt}`
+    const filePath = path.join(uploadDir, fileName)
+
+    // 异步保存文件
+    await fsPromises.writeFile(filePath, file.buffer)
+
+    // 生成 URL 路径
+    const studentIdImageUrl = `/uploads/student-id/${fileName}`
+
+    // 确保 profile 存在
+    let profile = user.profile
+    if (!profile) {
+      profile = this.profileRepository.create({
+        userId: user.id,
+        preferences: this.getDefaultPreferences(),
+      })
+    }
+
+    // 更新学生证图片 URL
+    profile.studentIdImageUrl = studentIdImageUrl
+    await this.profileRepository.save(profile)
+
+    this.logger.log(`Student ID image uploaded for user: ${userId}`)
+
+    return {
+      success: true,
+      data: {
+        studentIdImageUrl,
+        isStudentVerified: profile.isStudentVerified,
       },
     }
   }

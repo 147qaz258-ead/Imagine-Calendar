@@ -18,7 +18,7 @@ const NOTIFICATION_TYPE_CONFIG: Record<NotificationType, { label: string; bgColo
     iconColor: 'text-blue-500',
   },
   roundtable_invite: {
-    label: '圆桌邀请',
+    label: '群组邀请',
     bgColor: 'bg-purple-50',
     iconColor: 'text-purple-500',
   },

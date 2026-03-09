@@ -25,12 +25,12 @@ export class MockSmsService implements ISmsService {
   }
 
   /**
-   * 发送圆桌匹配成功通知
+   * 发送群组匹配成功通知
    */
   async sendRoundtableMatched(phone: string, time: string): Promise<SendResult> {
-    const content = `【畅选日历】恭喜您已匹配成功！圆桌讨论将于${time}开始，请准时参加。`
+    const content = `【畅选日历】恭喜您已匹配成功！群组讨论将于${time}开始，请准时参加。`
 
-    this.logger.log(`[SMS Mock] 发送圆桌匹配通知到 ${phone}`)
+    this.logger.log(`[SMS Mock] 发送群组匹配通知到 ${phone}`)
     this.logger.debug(`[SMS Mock] 内容: ${content}`)
 
     return {
@@ -40,12 +40,12 @@ export class MockSmsService implements ISmsService {
   }
 
   /**
-   * 发送圆桌提醒（2小时前）
+   * 发送群组提醒（2小时前）
    */
   async sendRoundtableReminder(phone: string): Promise<SendResult> {
-    const content = `【畅选日历】您报名的圆桌将于2小时后开始，请准时参加。`
+    const content = `【畅选日历】您报名的群组将于2小时后开始，请准时参加。`
 
-    this.logger.log(`[SMS Mock] 发送圆桌提醒到 ${phone}`)
+    this.logger.log(`[SMS Mock] 发送群组提醒到 ${phone}`)
     this.logger.debug(`[SMS Mock] 内容: ${content}`)
 
     return {

@@ -1,0 +1,5 @@
+export * from './group-meeting.module'
+export * from './group-meeting.service'
+export * from './group-meeting.controller'
+export * from './entities'
+export * from './dto'

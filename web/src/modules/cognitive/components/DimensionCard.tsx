@@ -14,7 +14,7 @@ interface DimensionCardProps {
 const SOURCE_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   self_exploration: { label: '自我探索', color: 'bg-green-100 text-green-700' },
   others_sharing: { label: '他人分享', color: 'bg-emerald-100 text-emerald-700' },
-  round_table: { label: '圆桌讨论', color: 'bg-blue-100 text-blue-700' },
+  round_table: { label: '群组讨论', color: 'bg-blue-100 text-blue-700' },
   study_buddy: { label: '学习伙伴', color: 'bg-purple-100 text-purple-700' },
   case_study: { label: '案例实践', color: 'bg-orange-100 text-orange-700' },
 }

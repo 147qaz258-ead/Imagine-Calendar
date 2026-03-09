@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository, In, Not, IsNull } from 'typeorm'
+import { Repository, In, Not } from 'typeorm'
 import { RoundTable, RoundTableStatus } from './entities/roundtable.entity'
 import {
   RoundTableParticipant,
@@ -19,6 +19,7 @@ import { UserProfile, UserPreferences } from '../user/entities/user-profile.enti
 import { RoundTableQueryDto, ApplyRoundTableDto, SubmitSummaryDto } from './dto'
 import { CognitiveService } from '../cognitive/cognitive.service'
 import { KnowledgeSourceType } from '../cognitive/entities/cognitive-map.entity'
+import { CognitiveBoundaryService } from '../cognitive-boundary/cognitive-boundary.service'
 
 /**
  * 匹配权重配置
@@ -91,6 +92,65 @@ const ROUND_TABLE_QUESTIONS = [
 ]
 
 /**
+ * 圆桌信息类型
+ */
+export interface RoundTableInfo {
+  id: string
+  status: RoundTableStatus
+  scheduledAt: Date | null
+  participantCount: number
+  topic: string | null
+}
+
+/**
+ * 格式化后的参与者类型
+ */
+export interface FormattedParticipant {
+  userId: string
+  nickname: string
+  avatar: string | null
+  joinedAt: string | undefined
+  role: ParticipantRole
+}
+
+/**
+ * 格式化后的圆桌类型
+ */
+export interface FormattedRoundTable {
+  id: string
+  topic: string | null
+  description: string | null
+  scheduledAt: string | undefined
+  duration: number
+  maxParticipants: number
+  participants: FormattedParticipant[]
+  status: RoundTableStatus
+  questions: string[]
+  summary: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 格式化后的消息类型
+ */
+export interface FormattedMessage {
+  id: string
+  userId: string
+  nickname: string
+  content: string
+  contentType: string
+  createdAt: string
+}
+
+/**
+ * 格式化后的圆桌详情类型
+ */
+export interface FormattedRoundTableDetail extends FormattedRoundTable {
+  messages: FormattedMessage[]
+}
+
+/**
  * 圆桌服务
  * 实现圆桌匹配、状态管理、讨论纪要等功能
  */
@@ -109,6 +169,8 @@ export class RoundTableService {
     private profileRepository: Repository<UserProfile>,
     @Inject(forwardRef(() => CognitiveService))
     private cognitiveService: CognitiveService,
+    @Inject(forwardRef(() => CognitiveBoundaryService))
+    private cognitiveBoundaryService: CognitiveBoundaryService,
   ) {}
 
   /**
@@ -257,7 +319,7 @@ export class RoundTableService {
     if (!roundTable) {
       throw new NotFoundException({
         code: 'ROUND_TABLE_NOT_FOUND',
-        message: '圆桌不存在',
+        message: '群组不存在',
       })
     }
 
@@ -281,7 +343,7 @@ export class RoundTableService {
     if (!roundTable) {
       throw new NotFoundException({
         code: 'ROUND_TABLE_NOT_FOUND',
-        message: '圆桌不存在',
+        message: '群组不存在',
       })
     }
 
@@ -289,14 +351,14 @@ export class RoundTableService {
     if (roundTable.status === RoundTableStatus.MATCHING) {
       throw new BadRequestException({
         code: 'ROUND_TABLE_NOT_READY',
-        message: '圆桌还在匹配中',
+        message: '群组还在匹配中',
       })
     }
 
     if (roundTable.status === RoundTableStatus.COMPLETED) {
       throw new BadRequestException({
         code: 'ROUND_TABLE_ALREADY_STARTED',
-        message: '圆桌已结束',
+        message: '群组已结束',
       })
     }
 
@@ -308,7 +370,7 @@ export class RoundTableService {
     if (activeParticipants.length >= roundTable.maxParticipants) {
       throw new BadRequestException({
         code: 'ROUND_TABLE_FULL',
-        message: '圆桌已满',
+        message: '群组已满',
       })
     }
 
@@ -374,7 +436,7 @@ export class RoundTableService {
     if (!participant) {
       throw new BadRequestException({
         code: 'ROUND_TABLE_NOT_PARTICIPANT',
-        message: '你不是该圆桌的参与者',
+        message: '你不是该群组的参与者',
       })
     }
 
@@ -420,7 +482,7 @@ export class RoundTableService {
     if (!participant) {
       throw new BadRequestException({
         code: 'ROUND_TABLE_NOT_PARTICIPANT',
-        message: '你不是该圆桌的参与者',
+        message: '你不是该群组的参与者',
       })
     }
 
@@ -440,7 +502,8 @@ export class RoundTableService {
         dto.keyPoints,
       )
     } catch (error) {
-      this.logger.warn(`Failed to update cognitive map: ${error.message}`)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.logger.warn(`Failed to update cognitive map: ${errorMessage}`)
     }
 
     return {
@@ -480,13 +543,13 @@ export class RoundTableService {
       order: { createdAt: 'DESC' },
     })
 
-    const matching: any[] = []
-    const upcoming: any[] = []
-    const completed: any[] = []
+    const matching: RoundTableInfo[] = []
+    const upcoming: RoundTableInfo[] = []
+    const completed: RoundTableInfo[] = []
 
     for (const p of participants) {
       const rt = p.roundTable
-      const info = {
+      const info: RoundTableInfo = {
         id: rt.id,
         status: rt.status,
         scheduledAt: rt.scheduledAt,
@@ -537,7 +600,7 @@ export class RoundTableService {
     if (participant.status === ParticipantStatus.JOINED) {
       throw new BadRequestException({
         code: 'ROUND_TABLE_ALREADY_STARTED',
-        message: '已加入的圆桌无法取消，请选择离开',
+        message: '已加入的群组无法取消，请选择离开',
       })
     }
 
@@ -547,6 +610,228 @@ export class RoundTableService {
     this.logger.log(`User ${userId} cancelled application for round table ${roundTableId}`)
 
     return { success: true }
+  }
+
+  /**
+   * 自动匹配圆桌
+   * 当用户完成个性化选择后自动触发
+   * POST /api/round-tables/auto-match
+   */
+  async autoMatch(userId: string) {
+    // 获取用户偏好
+    const profile = await this.profileRepository.findOne({
+      where: { userId },
+    })
+
+    if (!profile || !profile.preferences) {
+      throw new BadRequestException({
+        code: 'PREFERENCES_INVALID',
+        message: '请先完善个性化选择',
+      })
+    }
+
+    // 检查是否已有进行中的匹配
+    const existingParticipant = await this.participantRepository.findOne({
+      where: {
+        userId,
+        status: In([
+          ParticipantStatus.APPLIED,
+          ParticipantStatus.MATCHED,
+          ParticipantStatus.JOINED,
+        ]),
+      },
+      relations: ['roundTable'],
+    })
+
+    if (existingParticipant) {
+      return {
+        success: true,
+        data: {
+          matched: existingParticipant.roundTable.status !== RoundTableStatus.MATCHING,
+          roundTableId: existingParticipant.roundTableId,
+          status: existingParticipant.roundTable.status,
+          participantCount: existingParticipant.roundTable.participants?.length || 1,
+        },
+      }
+    }
+
+    // 尝试匹配现有圆桌
+    const matchedRoundTable = await this.tryMatchExistingRoundTable(userId, profile.preferences)
+
+    if (matchedRoundTable) {
+      // 加入现有圆桌
+      const participant = this.participantRepository.create({
+        roundTableId: matchedRoundTable.id,
+        userId,
+        role: ParticipantRole.MEMBER,
+        status: ParticipantStatus.MATCHED,
+        preferences: profile.preferences,
+        matchedAt: new Date(),
+      })
+      await this.participantRepository.save(participant)
+
+      // 检查是否人齐
+      await this.checkAndUpdateRoundTableStatus(matchedRoundTable.id)
+
+      this.logger.log(`User ${userId} auto-matched to round table ${matchedRoundTable.id}`)
+
+      const updatedRoundTable = await this.roundTableRepository.findOne({
+        where: { id: matchedRoundTable.id },
+        relations: ['participants'],
+      })
+
+      return {
+        success: true,
+        data: {
+          matched: true,
+          roundTableId: matchedRoundTable.id,
+          status: updatedRoundTable?.status,
+          participantCount: updatedRoundTable?.participants?.length || 1,
+        },
+      }
+    }
+
+    // 创建新圆桌或加入匹配中的圆桌
+    const roundTable = await this.findOrCreateMatchingRoundTable([])
+
+    const participant = this.participantRepository.create({
+      roundTableId: roundTable.id,
+      userId,
+      role: ParticipantRole.HOST,
+      status: ParticipantStatus.APPLIED,
+      preferences: profile.preferences,
+    })
+    await this.participantRepository.save(participant)
+
+    this.logger.log(`User ${userId} auto-matched to new round table ${roundTable.id}`)
+
+    return {
+      success: true,
+      data: {
+        matched: false,
+        roundTableId: roundTable.id,
+        status: RoundTableStatus.MATCHING,
+        participantCount: 1,
+      },
+    }
+  }
+
+  /**
+   * 直接将用户加入指定群组
+   * 用于邀请码关联群组的场景
+   * @param userId 用户ID
+   * @param groupId 群组ID（RoundTable ID）
+   */
+  async addUserToGroup(
+    userId: string,
+    groupId: string,
+  ): Promise<{
+    success: boolean
+    participantId: string
+    roundTableId: string
+  }> {
+    // 验证群组存在
+    const roundTable = await this.roundTableRepository.findOne({
+      where: { id: groupId },
+      relations: ['participants'],
+    })
+
+    if (!roundTable) {
+      throw new NotFoundException({
+        code: 'ROUND_TABLE_NOT_FOUND',
+        message: '群组不存在',
+      })
+    }
+
+    // 检查群组状态是否允许加入
+    if (roundTable.status === RoundTableStatus.COMPLETED) {
+      throw new BadRequestException({
+        code: 'ROUND_TABLE_ALREADY_COMPLETED',
+        message: '该群组已结束，无法加入',
+      })
+    }
+
+    if (roundTable.status === RoundTableStatus.CANCELLED) {
+      throw new BadRequestException({
+        code: 'ROUND_TABLE_CANCELLED',
+        message: '该群组已取消，无法加入',
+      })
+    }
+
+    // 检查是否已满
+    const activeParticipants = (roundTable.participants || []).filter(
+      (p) =>
+        p.status === ParticipantStatus.MATCHED ||
+        p.status === ParticipantStatus.JOINED ||
+        p.status === ParticipantStatus.APPLIED,
+    )
+
+    if (activeParticipants.length >= roundTable.maxParticipants) {
+      throw new BadRequestException({
+        code: 'ROUND_TABLE_FULL',
+        message: '该群组已满员',
+      })
+    }
+
+    // 检查用户是否已经在该群组中
+    const existingParticipant = await this.participantRepository.findOne({
+      where: { roundTableId: groupId, userId },
+    })
+
+    if (existingParticipant) {
+      // 如果用户已存在但状态为取消或离开，则重新激活
+      if (
+        existingParticipant.status === ParticipantStatus.CANCELLED ||
+        existingParticipant.status === ParticipantStatus.LEFT
+      ) {
+        existingParticipant.status = ParticipantStatus.MATCHED
+        existingParticipant.matchedAt = new Date()
+        await this.participantRepository.save(existingParticipant)
+
+        this.logger.log(`User ${userId} re-joined group ${groupId}`)
+
+        return {
+          success: true,
+          participantId: existingParticipant.id,
+          roundTableId: groupId,
+        }
+      }
+
+      // 用户已是活跃成员
+      this.logger.log(`User ${userId} already in group ${groupId}`)
+      return {
+        success: true,
+        participantId: existingParticipant.id,
+        roundTableId: groupId,
+      }
+    }
+
+    // 获取用户偏好（如果有）
+    const profile = await this.profileRepository.findOne({
+      where: { userId },
+    })
+
+    // 创建新的参与者记录
+    const participant = this.participantRepository.create({
+      roundTableId: groupId,
+      userId,
+      role: ParticipantRole.MEMBER,
+      status: ParticipantStatus.MATCHED,
+      preferences: profile?.preferences || {},
+      matchedAt: new Date(),
+    })
+    await this.participantRepository.save(participant)
+
+    // 检查是否人齐，更新群组状态
+    await this.checkAndUpdateRoundTableStatus(groupId)
+
+    this.logger.log(`User ${userId} added to group ${groupId} via invite code`)
+
+    return {
+      success: true,
+      participantId: participant.id,
+      roundTableId: groupId,
+    }
   }
 
   // ============ 私有方法 ============
@@ -600,7 +885,7 @@ export class RoundTableService {
   /**
    * 查找或创建匹配中的圆桌
    */
-  private async findOrCreateMatchingRoundTable(preferredTimes: string[]): Promise<RoundTable> {
+  private async findOrCreateMatchingRoundTable(_preferredTimes: string[]): Promise<RoundTable> {
     // 查找最新的 matching 状态圆桌
     let roundTable = await this.roundTableRepository.findOne({
       where: { status: RoundTableStatus.MATCHING },
@@ -652,9 +937,297 @@ export class RoundTableService {
       roundTable.scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
       await this.roundTableRepository.save(roundTable)
 
+      // 触发组长确认流程
+      await this.onGroupFull(roundTableId)
+
       this.logger.log(
         `Round table ${roundTableId} is ready with ${activeParticipants.length} participants`,
       )
+    }
+  }
+
+  /**
+   * 群组满6人时触发组长确认流程
+   * TASK-4.2: 组长确认机制完善
+   */
+  async onGroupFull(roundTableId: string): Promise<void> {
+    // 1. 设置确认截止时间（12小时后）
+    const deadline = new Date(Date.now() + 12 * 60 * 60 * 1000)
+
+    // 2. 更新所有匹配状态的参与者的确认截止时间
+    await this.participantRepository.update(
+      { roundTableId, status: ParticipantStatus.MATCHED },
+      { leaderConfirmDeadline: deadline },
+    )
+
+    // 3. 发送系统消息通知
+    await this.sendLeaderConfirmMessage(roundTableId, deadline)
+
+    // 4. 设置定时任务（12小时后检查）
+    await this.scheduleLeaderCheck(roundTableId, deadline)
+
+    this.logger.log(`Leader confirm flow triggered for round table ${roundTableId}, deadline: ${deadline.toISOString()}`)
+  }
+
+  /**
+   * 用户确认成为组长
+   * TASK-4.2: 组长确认机制完善
+   */
+  async confirmAsLeader(userId: string, roundTableId: string) {
+    // 检查是否已有组长
+    const existingLeader = await this.participantRepository.findOne({
+      where: { roundTableId, isLeader: true },
+    })
+
+    if (existingLeader) {
+      throw new BadRequestException({
+        code: 'LEADER_ALREADY_EXISTS',
+        message: '该群组已有组长',
+      })
+    }
+
+    // 检查用户是否是该群组的参与者
+    const participant = await this.participantRepository.findOne({
+      where: { roundTableId, userId },
+    })
+
+    if (!participant) {
+      throw new BadRequestException({
+        code: 'NOT_PARTICIPANT',
+        message: '你不是该群组的参与者',
+      })
+    }
+
+    // 检查确认截止时间是否已过
+    if (participant.leaderConfirmDeadline && new Date() > participant.leaderConfirmDeadline) {
+      throw new BadRequestException({
+        code: 'CONFIRM_DEADLINE_PASSED',
+        message: '确认时间已过',
+      })
+    }
+
+    // 设置为组长
+    await this.participantRepository.update(
+      { userId, roundTableId },
+      {
+        isLeader: true,
+        role: ParticipantRole.HOST,
+        status: ParticipantStatus.LEADER_CONFIRMED,
+        leaderConfirmDeadline: null, // 清除截止时间
+      },
+    )
+
+    // 清除其他参与者的确认截止时间
+    await this.participantRepository.update(
+      { roundTableId, isLeader: false },
+      { leaderConfirmDeadline: null },
+    )
+
+    // 发送确认消息
+    await this.sendLeaderConfirmedMessage(roundTableId, userId)
+
+    this.logger.log(`User ${userId} confirmed as leader for round table ${roundTableId}`)
+
+    const updatedRoundTable = await this.roundTableRepository.findOne({
+      where: { id: roundTableId },
+      relations: ['participants', 'participants.user'],
+    })
+
+    return {
+      success: true,
+      data: {
+        roundTable: updatedRoundTable ? this.formatRoundTable(updatedRoundTable) : null,
+      },
+    }
+  }
+
+  /**
+   * 获取组长确认状态
+   * TASK-4.2: 组长确认机制完善
+   */
+  async getLeaderConfirmStatus(roundTableId: string, userId: string) {
+    const participants = await this.participantRepository.find({
+      where: { roundTableId },
+      relations: ['user'],
+    })
+
+    const currentLeader = participants.find((p) => p.isLeader)
+    const currentUserParticipant = participants.find((p) => p.userId === userId)
+
+    // 检查是否需要组长确认（满6人且无组长）
+    const needsConfirm =
+      !currentLeader &&
+      currentUserParticipant?.leaderConfirmDeadline &&
+      new Date() < currentUserParticipant.leaderConfirmDeadline
+
+    return {
+      success: true,
+      data: {
+        hasLeader: !!currentLeader,
+        leader: currentLeader
+          ? {
+              userId: currentLeader.userId,
+              nickname: currentLeader.user?.nickname || '匿名用户',
+            }
+          : null,
+        needsConfirm,
+        deadline: currentUserParticipant?.leaderConfirmDeadline?.toISOString() || null,
+        canConfirm:
+          needsConfirm &&
+          currentUserParticipant?.status === ParticipantStatus.MATCHED,
+        remainingTime: currentUserParticipant?.leaderConfirmDeadline
+          ? Math.max(
+              0,
+              Math.floor(
+                (currentUserParticipant.leaderConfirmDeadline.getTime() - Date.now()) / 1000,
+              ),
+            )
+          : 0,
+      },
+    }
+  }
+
+  /**
+   * 获取问题清单完成状态
+   * TASK-4.3: 问题清单完成状态
+   */
+  async getQuestionnaireStatus(groupId: string) {
+    const participants = await this.participantRepository.find({
+      where: { roundTableId: groupId },
+      relations: ['user'],
+    })
+
+    // 获取每个参与者的认知边界评估状态
+    const statusList = await Promise.all(
+      participants.map(async (p) => {
+        try {
+          const assessment = await this.cognitiveBoundaryService.getAssessment(p.userId)
+          const data = assessment?.data
+          return {
+            userId: p.userId,
+            nickname: p.user?.nickname || '匿名用户',
+            avatar: p.user?.avatar,
+            completed: data?.completedAt != null,
+            progress: data?.assessedQuestions || 0,
+            total: data?.totalQuestions || 65,
+          }
+        } catch {
+          // 如果获取失败，返回未完成状态
+          return {
+            userId: p.userId,
+            nickname: p.user?.nickname || '匿名用户',
+            avatar: p.user?.avatar,
+            completed: false,
+            progress: 0,
+            total: 65,
+          }
+        }
+      }),
+    )
+
+    return {
+      success: true,
+      data: {
+        total: participants.length,
+        completed: statusList.filter((s) => s.completed).length,
+        statusList,
+      },
+    }
+  }
+
+  /**
+   * 12小时后自动指定组长
+   * TASK-4.2: 组长确认机制完善
+   */
+  async assignRandomLeader(roundTableId: string) {
+    const participants = await this.participantRepository.find({
+      where: { roundTableId, status: ParticipantStatus.MATCHED },
+    })
+
+    // 检查是否已有组长
+    const allParticipants = await this.participantRepository.find({
+      where: { roundTableId },
+    })
+
+    if (allParticipants.some((p) => p.isLeader)) {
+      this.logger.log(`Round table ${roundTableId} already has a leader, skip auto assign`)
+      return
+    }
+
+    if (participants.length === 0) {
+      this.logger.warn(`No matched participants found for round table ${roundTableId}`)
+      return
+    }
+
+    // 随机选择一个
+    const randomIndex = Math.floor(Math.random() * participants.length)
+    const newLeader = participants[randomIndex]
+
+    await this.participantRepository.update(
+      { id: newLeader.id },
+      {
+        isLeader: true,
+        role: ParticipantRole.HOST,
+        status: ParticipantStatus.LEADER_CONFIRMED,
+        leaderConfirmDeadline: null,
+      },
+    )
+
+    // 清除其他参与者的确认截止时间
+    await this.participantRepository.update(
+      { roundTableId, isLeader: false },
+      { leaderConfirmDeadline: null },
+    )
+
+    await this.sendLeaderAssignedMessage(roundTableId, newLeader.userId)
+
+    this.logger.log(
+      `Random leader assigned for round table ${roundTableId}: user ${newLeader.userId}`,
+    )
+  }
+
+  /**
+   * 发送组长确认请求消息
+   */
+  private async sendLeaderConfirmMessage(roundTableId: string, deadline: Date): Promise<void> {
+    // TODO: 实现消息发送（可通过 WebSocket 或消息表）
+    this.logger.log(
+      `Leader confirm message sent for round table ${roundTableId}, deadline: ${deadline.toISOString()}`,
+    )
+  }
+
+  /**
+   * 发送组长确认成功消息
+   */
+  private async sendLeaderConfirmedMessage(roundTableId: string, userId: string): Promise<void> {
+    // TODO: 实现消息发送
+    this.logger.log(`Leader confirmed message sent for round table ${roundTableId}, user: ${userId}`)
+  }
+
+  /**
+   * 发送组长自动指定消息
+   */
+  private async sendLeaderAssignedMessage(roundTableId: string, userId: string): Promise<void> {
+    // TODO: 实现消息发送
+    this.logger.log(`Leader assigned message sent for round table ${roundTableId}, user: ${userId}`)
+  }
+
+  /**
+   * 设置定时任务检查组长确认
+   */
+  private async scheduleLeaderCheck(roundTableId: string, deadline: Date): Promise<void> {
+    // TODO: 使用定时任务框架（如 @nestjs/schedule 或 Bull）
+    // 这里暂时使用简单的 setTimeout（生产环境需要持久化定时任务）
+    const delay = deadline.getTime() - Date.now()
+    if (delay > 0) {
+      setTimeout(async () => {
+        try {
+          await this.assignRandomLeader(roundTableId)
+        } catch (error) {
+          this.logger.error(`Failed to auto assign leader for ${roundTableId}: ${error}`)
+        }
+      }, delay)
+      this.logger.log(`Scheduled leader check for ${roundTableId} in ${delay}ms`)
     }
   }
 
@@ -667,8 +1240,8 @@ export class RoundTableService {
     let totalWeight = 0
 
     for (const [key, weight] of Object.entries(MATCH_WEIGHTS)) {
-      const arr1 = (p1 as any)[key] as string[]
-      const arr2 = (p2 as any)[key] as string[]
+      const arr1 = (p1 as unknown as Record<string, unknown>)[key] as string[] | undefined
+      const arr2 = (p2 as unknown as Record<string, unknown>)[key] as string[] | undefined
 
       if (arr1 && arr2 && arr1.length > 0 && arr2.length > 0) {
         const overlap = arr1.filter((v) => arr2.includes(v))
@@ -699,7 +1272,7 @@ export class RoundTableService {
   /**
    * 格式化圆桌列表项
    */
-  private formatRoundTable(rt: RoundTable) {
+  private formatRoundTable(rt: RoundTable): FormattedRoundTable {
     const participants =
       rt.participants?.map((p) => ({
         userId: p.userId,
@@ -728,7 +1301,7 @@ export class RoundTableService {
   /**
    * 格式化圆桌详情
    */
-  private formatRoundTableDetail(rt: RoundTable) {
+  private formatRoundTableDetail(rt: RoundTable): FormattedRoundTableDetail {
     const base = this.formatRoundTable(rt)
 
     const messages =
@@ -760,7 +1333,7 @@ export class RoundTableService {
 
     // 更新各维度
     const dimensions = ['地点认知', '自我定位认知', '发展方向认知', '行业认知', '企业认知']
-    const result: any = {}
+    const result: Record<string, unknown> = {}
 
     for (const dimension of dimensions) {
       try {
@@ -769,14 +1342,15 @@ export class RoundTableService {
           score: totalScore,
           knowledgeSource: {
             type: KnowledgeSourceType.ROUND_TABLE,
-            description: `圆桌讨论贡献: ${keyPoints.slice(0, 3).join(', ')}`,
+            description: `群组讨论贡献: ${keyPoints.slice(0, 3).join(', ')}`,
             depth: 2,
             contributedAt: new Date().toISOString(),
           },
         })
         result[dimension] = updateResult
       } catch (error) {
-        this.logger.warn(`Failed to update dimension ${dimension}: ${error.message}`)
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        this.logger.warn(`Failed to update dimension ${dimension}: ${errorMessage}`)
       }
     }
 

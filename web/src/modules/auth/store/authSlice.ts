@@ -2,8 +2,21 @@
  * 认证状态管理
  */
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import type { AuthState, User, LoginRequest, SendCodeRequest, PasswordLoginRequest, RegisterRequest } from '../types'
+import type { AuthState, User, LoginRequest, SendCodeRequest, PasswordLoginRequest, RegisterRequest, OnboardingStep } from '../types'
 import { authApi } from '../services/authApi'
+
+// 从localStorage读取引导步骤
+const getStoredOnboardingStep = (): OnboardingStep => {
+  const stored = localStorage.getItem('onboardingStep')
+  // Map legacy 'exploration' to 'preferences' for users mid-flow
+  if (stored === 'exploration') {
+    return 'preferences'
+  }
+  if (stored === 'welcome' || stored === 'preferences' || stored === 'completed') {
+    return stored
+  }
+  return 'welcome'
+}
 
 // 初始状态
 const initialState: AuthState = {
@@ -11,6 +24,7 @@ const initialState: AuthState = {
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
   isNewUser: false,
+  onboardingStep: getStoredOnboardingStep(),
   loading: false,
   error: null,
 }
@@ -137,9 +151,17 @@ const authSlice = createSlice({
       state.token = null
       state.isAuthenticated = false
       state.isNewUser = false
+      state.onboardingStep = 'welcome'
       state.loading = false
       state.error = null
       localStorage.removeItem('token')
+      localStorage.removeItem('onboardingStep')
+      localStorage.removeItem('productPositioningShown')
+    },
+    // 设置引导步骤
+    setOnboardingStep: (state, action: PayloadAction<OnboardingStep>) => {
+      state.onboardingStep = action.payload
+      localStorage.setItem('onboardingStep', action.payload)
     },
   },
   extraReducers: (builder) => {
@@ -243,5 +265,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { clearError, setUser, logout } = authSlice.actions
+export const { clearError, setUser, logout, setOnboardingStep } = authSlice.actions
 export default authSlice.reducer

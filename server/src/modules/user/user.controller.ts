@@ -11,6 +11,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
@@ -25,6 +26,13 @@ import { UserService } from './user.service'
 import { UpdateProfileDto, UpdatePreferencesDto, SchoolQueryDto, MajorQueryDto } from './dto'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
 import { Public } from '../../common/decorators/public.decorator'
+
+// Multer configuration for file uploads
+const STUDENT_ID_IMAGE_UPLOAD_OPTIONS = {
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+}
 
 /**
  * 用户控制器
@@ -61,6 +69,8 @@ export class UserController {
           city: '北京',
           name: '张三',
           studentId: '20210101001',
+          studentIdImageUrl: '/uploads/student-id/uuid.jpg',
+          isStudentVerified: false,
           preferences: {
             locations: ['北京', '上海'],
             selfPositioning: ['技术专家'],
@@ -198,6 +208,64 @@ export class UserController {
   }
 
   /**
+   * 上传学生证图片（存储）
+   * POST /api/users/:id/student-id-image
+   */
+  @Post(':id/student-id-image')
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: '用户ID', type: 'string' })
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: '上传学生证图片（存储图片）' })
+  @ApiResponse({
+    status: 200,
+    description: '上传成功',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          studentIdImageUrl: '/uploads/student-id/uuid.jpg',
+          isStudentVerified: false,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: '上传失败',
+    schema: {
+      example: {
+        success: false,
+        error: { code: 'UPLOAD_FAILED', message: '请上传学生证图片' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: '无权限',
+    schema: {
+      example: {
+        success: false,
+        error: { code: 'FORBIDDEN', message: '只能上传自己的学生证' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('image', STUDENT_ID_IMAGE_UPLOAD_OPTIONS))
+  async uploadStudentIdImage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser('id') currentUserId: string,
+  ) {
+    // 安全检查：用户只能上传自己的学生证
+    if (id !== currentUserId) {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: '只能上传自己的学生证',
+      })
+    }
+    return this.userService.uploadStudentIdImage(id, file)
+  }
+
+  /**
    * 上传学生证（OCR）
    * POST /api/users/:id/student-card
    */
@@ -232,11 +300,29 @@ export class UserController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('image'))
+  @ApiResponse({
+    status: 403,
+    description: '无权限',
+    schema: {
+      example: {
+        success: false,
+        error: { code: 'FORBIDDEN', message: '只能上传自己的学生证' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('image', STUDENT_ID_IMAGE_UPLOAD_OPTIONS))
   async uploadStudentCard(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser('id') currentUserId: string,
   ) {
+    // 安全检查：用户只能上传自己的学生证
+    if (id !== currentUserId) {
+      throw new ForbiddenException({
+        code: 'FORBIDDEN',
+        message: '只能上传自己的学生证',
+      })
+    }
     return this.userService.uploadStudentCard(id, file)
   }
 }

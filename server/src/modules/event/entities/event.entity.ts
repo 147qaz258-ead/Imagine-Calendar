@@ -101,6 +101,9 @@ export class Event {
   @Column({ type: 'varchar', length: 20, default: 'active' })
   status: string
 
+  @Column({ type: 'uuid', nullable: true, name: 'related_id' })
+  relatedId: string
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt: Date
 

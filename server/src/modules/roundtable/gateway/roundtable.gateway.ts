@@ -124,7 +124,7 @@ export class RoundTableGateway implements OnGatewayConnection, OnGatewayDisconne
 
       if (!roundTableId) {
         this.logger.warn(`Client ${client.id} connected without roundTableId`)
-        client.emit('error', { code: 'MISSING_ROUNDTABLE_ID', message: '缺少圆桌ID' })
+        client.emit('error', { code: 'MISSING_ROUNDTABLE_ID', message: '缺少群组ID' })
         client.disconnect()
         return
       }
@@ -135,7 +135,7 @@ export class RoundTableGateway implements OnGatewayConnection, OnGatewayDisconne
       })
 
       if (!roundTable) {
-        client.emit('error', { code: 'ROUNDTABLE_NOT_FOUND', message: '圆桌不存在' })
+        client.emit('error', { code: 'ROUNDTABLE_NOT_FOUND', message: '群组不存在' })
         client.disconnect()
         return
       }
@@ -150,7 +150,7 @@ export class RoundTableGateway implements OnGatewayConnection, OnGatewayDisconne
       })
 
       if (!participant) {
-        client.emit('error', { code: 'NOT_PARTICIPANT', message: '您不是该圆桌的参与者' })
+        client.emit('error', { code: 'NOT_PARTICIPANT', message: '您不是该群组的参与者' })
         client.disconnect()
         return
       }
@@ -254,7 +254,7 @@ export class RoundTableGateway implements OnGatewayConnection, OnGatewayDisconne
     const userInfo = this.socketUserMap.get(client.id)
 
     if (!userInfo) {
-      throw new WsException({ code: 'NOT_CONNECTED', message: '未连接到圆桌' })
+      throw new WsException({ code: 'NOT_CONNECTED', message: '未连接到群组' })
     }
 
     const { userId, roundTableId } = userInfo

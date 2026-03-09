@@ -15,7 +15,7 @@ interface NotificationListProps {
 const TYPE_OPTIONS: { value: NotificationType | ''; label: string }[] = [
   { value: '', label: '全部类型' },
   { value: 'event_reminder', label: '活动提醒' },
-  { value: 'roundtable_invite', label: '圆桌邀请' },
+  { value: 'roundtable_invite', label: '群组邀请' },
   { value: 'application_update', label: '申请更新' },
   { value: 'system', label: '系统通知' },
 ]

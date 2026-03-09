@@ -18,6 +18,12 @@ export enum NotificationType {
   ROUND_TABLE_INVITE = 'round_table_invite', // 圆桌邀请
   ROUND_TABLE_START = 'round_table_start', // 圆桌开始
   SYSTEM = 'system', // 系统消息
+  COGNITIVE_TASK = 'cognitive_task', // 认知边界评估任务
+  GROUP_READY = 'group_ready', // 群组已满员
+  LEADER_CONFIRM = 'leader_confirm', // 确认组长
+  CALENDAR_SHARE_REQUEST = 'calendar_share_request', // 日历共享请求
+  MEETING_CREATED = 'meeting_created', // 会议创建
+  MEETING_REMINDER = 'meeting_reminder', // 会议提醒
 }
 
 /**

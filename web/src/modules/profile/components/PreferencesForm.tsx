@@ -2,8 +2,11 @@
  * 求职偏好表单（13维度）
  */
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updatePreferences } from '../store/profileSlice'
+import { setOnboardingStep } from '@/modules/auth/store/authSlice'
+import { autoMatchRoundTable } from '@/modules/roundtable/store/roundTableSlice'
 import { filterApi } from '@/modules/filter/services/filterApi'
 import type { UserPreferences } from '../types'
 
@@ -34,7 +37,9 @@ interface FilterOption {
 
 export const PreferencesForm: React.FC = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { user, updateLoading, updateError } = useAppSelector((state) => state.profile)
+  const { onboardingStep } = useAppSelector((state) => state.auth)
 
   // 筛选选项
   const [filterOptions, setFilterOptions] = useState<Record<string, FilterOption[]>>({})
@@ -95,7 +100,19 @@ export const PreferencesForm: React.FC = () => {
     ).unwrap()
 
     if (result) {
-      alert(`保存成功！匹配度评分: ${result.matchingScore}%`)
+      // 判断是否在引导流程中
+      const isInOnboarding = onboardingStep === 'preferences'
+
+      if (isInOnboarding) {
+        // 完成引导流程
+        dispatch(setOnboardingStep('completed'))
+        // 触发自动匹配群组
+        dispatch(autoMatchRoundTable())
+        // 导航到日历页面
+        navigate('/calendar', { replace: true })
+      } else {
+        alert(`保存成功！匹配度评分: ${result.matchingScore}%`)
+      }
     }
   }
 

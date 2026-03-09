@@ -1,5 +1,5 @@
 /**
- * 圆桌讨论 WebSocket 服务
+ * 群组 WebSocket 服务
  * 根据 API-CONTRACT.md 唯一可信源实现
  */
 import { io, Socket } from 'socket.io-client'
@@ -32,7 +32,7 @@ const SOCKET_OPTIONS = {
 }
 
 /**
- * 圆桌 WebSocket 客户端类
+ * 群组 WebSocket 客户端类
  */
 export class RoundtableSocket {
   private socket: Socket | null = null
@@ -42,7 +42,7 @@ export class RoundtableSocket {
   private listeners: Map<string, Set<WebSocketCallback>> = new Map()
 
   /**
-   * 连接到圆桌 WebSocket
+   * 连接到群组 WebSocket
    */
   connect(roundTableId: string, token: string, wsEndpoint?: string): void {
     // 如果已连接，先断开
@@ -108,7 +108,7 @@ export class RoundtableSocket {
       console.error('[RoundtableSocket] Reconnect failed')
       this.emitToListeners('error', {
         type: 'error',
-        data: { code: 'RECONNECT_FAILED', message: '无法重新连接到圆桌' },
+        data: { code: 'RECONNECT_FAILED', message: '无法重新连接到群组' },
       })
     })
 
@@ -134,12 +134,12 @@ export class RoundtableSocket {
       this.emitToListeners('receive_message', { type: 'receive_message', data })
     })
 
-    // 圆桌开始
+    // 群组开始
     this.socket.on('round_table_start', (data: RoundTableStartEvent['data']) => {
       this.emitToListeners('round_table_start', { type: 'round_table_start', data })
     })
 
-    // 圆桌结束
+    // 群组结束
     this.socket.on('round_table_end', (data: RoundTableEndEvent['data']) => {
       this.emitToListeners('round_table_end', { type: 'round_table_end', data })
     })
