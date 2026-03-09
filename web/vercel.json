@@ -1,12 +1,8 @@
 {
-  "framework": "vite",
-  "buildCommand": "cd .. && npm run build",
+  "buildCommand": "echo skipped",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
+  "installCommand": "echo skipped",
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

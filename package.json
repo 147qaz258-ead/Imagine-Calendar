@@ -4,13 +4,11 @@
   "private": true,
   "description": "畅选日历 - 职业规划日历平台",
   "scripts": {
-    "prepare": "[ \"$NODE_ENV\" != \"production\" ] && husky || true",
-    "postinstall": "cd web && npm install",
-    "build": "cd web && npm run build",
+    "build": "pnpm --filter career-calendar-web build",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "test": "pnpm -r test",
-    "dev": "concurrently \"pnpm --filter web dev\" \"pnpm --filter server start:dev\""
+    "dev": "concurrently \"pnpm --filter career-calendar-web dev\" \"pnpm --filter career-calendar-server start:dev\""
   },
   "devDependencies": {
     "husky": "^9.1.4",

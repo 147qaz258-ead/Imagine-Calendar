@@ -1,5 +1,8 @@
 {
-  "buildCommand": "cd web && npm run build",
+  "buildCommand": "pnpm --filter career-calendar-web build",
   "outputDirectory": "web/dist",
-  "installCommand": "npm install && cd web && npm install"
+  "installCommand": "pnpm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

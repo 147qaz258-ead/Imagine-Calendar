@@ -58,3 +58,4 @@ docker-compose.override.yml
 .eslintcache
 *.pem
 .vercel
+.env*.local

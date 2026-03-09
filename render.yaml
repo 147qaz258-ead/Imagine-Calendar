@@ -4,7 +4,7 @@ services:
     runtime: node
     region: singapore
     plan: free
-    buildCommand: pnpm install && npx @nestjs/cli build
+    buildCommand: pnpm install && pnpm --filter career-calendar-server build
     startCommand: node dist/main.js
     healthCheckPath: /api
     envVars:
