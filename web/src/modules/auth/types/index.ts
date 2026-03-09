@@ -56,6 +56,7 @@ export interface SendCodeResponse {
   message: string
   data?: {
     expiresIn: number
+    code?: string // 非生产环境返回验证码用于测试
   }
 }
 

@@ -83,6 +83,9 @@ export function LoginPage(): JSX.Element {
   // 验证码发送状态
   const [codeSent, setCodeSent] = useState(false)
 
+  // 测试环境显示的验证码
+  const [displayCode, setDisplayCode] = useState<string | null>(null)
+
   // 邀请码验证状态
   const [validatingInviteCode, setValidatingInviteCode] = useState(false)
   const [inviteCodeValid, setInviteCodeValid] = useState(false)
@@ -129,6 +132,7 @@ export function LoginPage(): JSX.Element {
 
     setPhoneError(null)
     setCodeError(null)
+    setDisplayCode(null)
 
     try {
       const scene = activeTab === 'register' ? 'register' : 'login'
@@ -139,6 +143,10 @@ export function LoginPage(): JSX.Element {
       if (result.success) {
         setCountdown(60)
         setCodeSent(true)
+        // 开发环境显示验证码
+        if (result.data?.code) {
+          setDisplayCode(result.data.code)
+        }
       }
     } catch {
       // 错误已经在slice中处理
@@ -394,18 +402,89 @@ export function LoginPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* 左侧产品定位宣传区域 */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 flex-col justify-between">
         {/* Logo 和标题 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">畅选日历</h1>
-          <p className="mt-2 text-sm text-gray-600">
+        <div>
+          <h1 className="text-4xl font-bold text-white">畅选日历</h1>
+          <p className="mt-2 text-blue-200 text-lg">
             帮助大学生规划职业发展路径
           </p>
         </div>
 
-        {/* 登录卡片 */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        {/* 产品定位内容 */}
+        <div className="space-y-8">
+          <h2 className="text-3xl font-bold text-white leading-tight">
+            我能帮你：
+          </h2>
+          <div className="space-y-6">
+            {[
+              {
+                icon: '🎯',
+                title: '正确使用AI工具',
+                desc: '帮助你学习如何正确使用AI工具，提升学习效率'
+              },
+              {
+                icon: '⏰',
+                title: '每天2小时自主学习',
+                desc: '提供每天2小时以内的自主学习和深入思考机会'
+              },
+              {
+                icon: '🔍',
+                title: '摸索认知边界',
+                desc: '提供摸索认知边界的问题清单，发现你的潜力'
+              },
+              {
+                icon: '👥',
+                title: '职业兴趣社群',
+                desc: '推荐与你职业兴趣相近的学生社群'
+              },
+              {
+                icon: '💼',
+                title: '模拟真实工作场景',
+                desc: '通过圆桌讨论模拟真实工作场景'
+              },
+              {
+                icon: '🌟',
+                title: '由你决定你是谁',
+                desc: '探索自我定位，发现职业发展方向'
+              }
+            ].map((item, index) => (
+              <div key={index} className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
+                  {item.icon}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{item.title}</h3>
+                  <p className="text-blue-200 text-sm mt-1">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 底部装饰 */}
+        <div className="flex items-center gap-4 text-blue-200 text-sm">
+          <span>已服务 1000+ 大学生</span>
+          <span className="w-1 h-1 bg-blue-300 rounded-full"></span>
+          <span>98% 用户满意度</span>
+        </div>
+      </div>
+
+      {/* 右侧登录表单区域 */}
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          {/* 移动端 Logo */}
+          <div className="lg:hidden text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">畅选日历</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              帮助大学生规划职业发展路径
+            </p>
+          </div>
+
+          {/* 登录卡片 */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Tab 切换 */}
           <div className="flex border-b border-gray-200 mb-6">
             {TABS.map((tab) => (
@@ -477,6 +556,18 @@ export function LoginPage(): JSX.Element {
                         : '发送验证码'}
                     </button>
                   </div>
+                  {/* 测试环境显示验证码 */}
+                  {displayCode && (
+                    <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-700">
+                        <span className="font-medium">测试验证码：</span>
+                        <span className="font-mono font-bold text-lg ml-2">{displayCode}</span>
+                      </p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        （因成本原因暂未接入短信服务，验证码已直接显示）
+                      </p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -528,6 +619,18 @@ export function LoginPage(): JSX.Element {
                         : '发送验证码'}
                     </button>
                   </div>
+                  {/* 测试环境显示验证码 */}
+                  {displayCode && (
+                    <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-700">
+                        <span className="font-medium">测试验证码：</span>
+                        <span className="font-mono font-bold text-lg ml-2">{displayCode}</span>
+                      </p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        （因成本原因暂未接入短信服务，验证码已直接显示）
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* 密码输入 */}
@@ -632,10 +735,11 @@ export function LoginPage(): JSX.Element {
         </div>
 
         {/* 底部链接 */}
-        <div className="mt-6 text-center">
-          <a href="/" className="text-sm text-gray-600 hover:text-blue-600">
-            返回首页
-          </a>
+          <div className="mt-6 text-center">
+            <a href="/" className="text-sm text-gray-600 hover:text-blue-600">
+              返回首页
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -1,12 +1,15 @@
 /**
  * 筛选面板组件
  * 包含13维度筛选、预设方案、操作按钮
+ * 注意：此筛选为临时筛选，页面刷新后重置，不会保存到数据库
  */
+import { useEffect } from 'react'
 import { FilterDimension } from './FilterDimension'
 import { PresetSelector } from './PresetSelector'
-import { useFilterOptions, useFilterPanel, useFilterActions, useFilterPersistence } from '../hooks/useFilter'
+import { useFilterOptions, useFilterPanel, useFilterActions } from '../hooks/useFilter'
 import { FILTER_DIMENSIONS, type FilterPreset } from '../types'
 import type { UserPreferences } from '../types'
+import { useAppSelector } from '@/store/hooks'
 
 interface FilterPanelProps {
   onApply?: () => void
@@ -16,8 +19,19 @@ interface FilterPanelProps {
 export function FilterPanel({ onApply, onClose }: FilterPanelProps) {
   const { options, loading: optionsLoading } = useFilterOptions()
   const { expandedDimensions, filterCount, hasChanges, close, toggleDimension, expandAll, collapseAll } = useFilterPanel()
-  const { filters, updateFilter, applyFilters, clearFilters, resetFilters, applyPreset } = useFilterActions()
-  const { saveFilters } = useFilterPersistence()
+  const { filters, updateFilter, applyFilters, clearFilters, resetFilters, applyPreset, updateFilters } = useFilterActions()
+
+  // 获取用户偏好（用于初始化筛选条件）
+  const { user } = useAppSelector((state) => state.auth)
+  const { user: profileUser } = useAppSelector((state) => state.profile)
+
+  // 从用户偏好初始化筛选条件（仅在首次加载时）
+  useEffect(() => {
+    const userPreferences = user?.preferences || profileUser?.preferences
+    if (userPreferences && Object.keys(filters).length === 0) {
+      updateFilters(userPreferences)
+    }
+  }, [user?.preferences, profileUser?.preferences])
 
   // 当前匹配的预设方案
   const getCurrentPresetId = (): string | undefined => {
@@ -33,7 +47,6 @@ export function FilterPanel({ onApply, onClose }: FilterPanelProps) {
   // 应用筛选
   const handleApply = () => {
     applyFilters()
-    saveFilters()
     onApply?.()
   }
 
@@ -57,16 +70,29 @@ export function FilterPanel({ onApply, onClose }: FilterPanelProps) {
   return (
     <div className="flex flex-col h-full bg-white">
       {/* 头部 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">筛选条件</h2>
-        <button
-          onClick={handleCancel}
-          className="p-1 text-gray-400 hover:text-gray-600 rounded"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      <div className="px-4 py-3 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">筛选条件</h2>
+          <button
+            onClick={handleCancel}
+            className="p-1 text-gray-400 hover:text-gray-600 rounded"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* 一次性筛选提示 */}
+        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-xs text-amber-700">
+            <span className="font-medium">临时筛选：</span>
+            此筛选为一次性筛选，页面刷新后自动重置，不会保存到您的个人偏好。
+          </p>
+          <p className="text-xs text-amber-600 mt-1">
+            如需修改默认偏好，请前往
+            <a href="/profile" className="text-blue-600 hover:underline ml-1">个人中心</a>
+          </p>
+        </div>
       </div>
 
       {/* 内容区域 */}

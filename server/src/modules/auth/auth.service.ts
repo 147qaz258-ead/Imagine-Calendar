@@ -135,10 +135,18 @@ export class AuthService {
 
     this.logger.log(`Verification code sent to ${phone}, scene: ${scene}`)
 
+    // 非生产环境返回验证码（用于测试）
+    const nodeEnv = this.configService.get<string>('NODE_ENV')
+    const isProduction = nodeEnv === 'production'
+
     return {
       success: true,
       message: '验证码已发送',
-      expiresIn: this.CODE_EXPIRY,
+      data: {
+        expiresIn: this.CODE_EXPIRY,
+        // 开发/测试环境返回验证码，方便测试
+        ...(isProduction ? {} : { code }),
+      },
     }
   }
 
