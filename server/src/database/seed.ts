@@ -449,9 +449,9 @@ async function seed() {
         } else {
           // 重置已存在的邀请码状态
           existingCode.status = InviteCodeStatus.ACTIVE
-          existingCode.groupId = codeConfig.groupId
           existingCode.usedCount = 0
-          existingCode.expiresAt = null
+          existingCode.groupId = codeConfig.groupId
+          existingCode.maxUses = codeConfig.maxUses
           await inviteCodeRepository.save(existingCode)
           console.log(`Reset invite code: ${codeConfig.code} -> Group ${i + 1}`)
         }
