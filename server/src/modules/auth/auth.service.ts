@@ -296,17 +296,17 @@ export class AuthService {
 
     this.logger.log(`Verification code sent to ${phone}, scene: ${scene}`)
 
-    // 非生产环境返回验证码（用于测试）
-    const nodeEnv = this.configService.get<string>('NODE_ENV')
-    const isProduction = nodeEnv === 'production'
+    // 检查是否返回验证码（默认：未接入短信服务时返回验证码）
+    const showCodeInResponse = this.configService.get<string>('SHOW_CODE_IN_RESPONSE')
+    const shouldShowCode = showCodeInResponse !== 'false' // 默认返回，除非明确设置为 false
 
     return {
       success: true,
       message: '验证码已发送',
       data: {
         expiresIn: this.CODE_EXPIRY,
-        // 开发/测试环境返回验证码，方便测试
-        ...(isProduction ? {} : { code }),
+        // 因成本原因暂未接入短信服务，默认返回验证码
+        ...(shouldShowCode ? { code } : {}),
       },
     }
   }
