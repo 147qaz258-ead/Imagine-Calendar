@@ -447,7 +447,13 @@ async function seed() {
           await inviteCodeRepository.save(inviteCode)
           console.log(`Created invite code: ${codeConfig.code} -> Group ${i + 1}`)
         } else {
-          console.log(`Invite code already exists: ${codeConfig.code}`)
+          // 重置已存在的邀请码状态
+          existingCode.status = InviteCodeStatus.ACTIVE
+          existingCode.groupId = codeConfig.groupId
+          existingCode.usedCount = 0
+          existingCode.expiresAt = null
+          await inviteCodeRepository.save(existingCode)
+          console.log(`Reset invite code: ${codeConfig.code} -> Group ${i + 1}`)
         }
 
         allInviteCodes.push({
