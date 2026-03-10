@@ -15,6 +15,7 @@ import { FilterModule } from './modules/filter/filter.module'
 import { InviteCodeModule } from './modules/invite-code/invite-code.module'
 import { CalendarShareModule } from './modules/calendar-share'
 import { GroupMeetingModule } from './modules/group-meeting'
+import { AdminModule } from './modules/admin/admin.module'
 
 // 配置验证
 import * as Joi from 'joi'
@@ -79,6 +80,7 @@ import * as Joi from 'joi'
     InviteCodeModule,
     CalendarShareModule,
     GroupMeetingModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
