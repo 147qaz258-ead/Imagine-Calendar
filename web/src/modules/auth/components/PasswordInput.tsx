@@ -9,6 +9,7 @@ interface PasswordInputProps {
   error?: string
   disabled?: boolean
   placeholder?: string
+  autoComplete?: 'current-password' | 'new-password'
 }
 
 export function PasswordInput({
@@ -17,6 +18,7 @@ export function PasswordInput({
   error,
   disabled = false,
   placeholder = '请输入密码',
+  autoComplete = 'current-password',
 }: PasswordInputProps): JSX.Element {
   const [isFocused, setIsFocused] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -63,7 +65,7 @@ export function PasswordInput({
           className={`block w-full px-4 py-3 text-lg border-0 rounded-lg focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed ${
             error ? 'placeholder-red-300' : 'placeholder-gray-400'
           }`}
-          autoComplete="current-password"
+          autoComplete={autoComplete}
         />
         <button
           type="button"

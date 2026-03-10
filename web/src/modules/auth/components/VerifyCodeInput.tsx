@@ -89,6 +89,7 @@ export const VerifyCodeInput: React.FC<VerifyCodeInputProps> = ({
             }}
             type="text"
             inputMode="numeric"
+            autoComplete={index === 0 ? 'one-time-code' : 'off'}
             maxLength={1}
             value={value[index] || ''}
             onChange={(e) => handleChange(index, e.target.value)}

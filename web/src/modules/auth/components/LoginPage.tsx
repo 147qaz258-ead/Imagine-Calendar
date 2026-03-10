@@ -47,6 +47,7 @@ const validatePassword = (password: string): string | null => {
   if (!password) return '请输入密码'
   if (password.length < 6) return '密码至少6位'
   if (password.length > 20) return '密码最多20位'
+  if (!/^(?=.*[a-zA-Z])(?=.*\d).+$/.test(password)) return '密码必须包含字母和数字'
   return null
 }
 
@@ -640,7 +641,8 @@ export function LoginPage(): JSX.Element {
                     onChange={handlePasswordChange}
                     error={passwordError ?? undefined}
                     disabled={loading}
-                    placeholder="设置密码（6-20位）"
+                    placeholder="设置密码（6-20位，需含字母和数字）"
+                    autoComplete="new-password"
                   />
                 </div>
 
