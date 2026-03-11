@@ -544,7 +544,7 @@ export function LoginPage(): JSX.Element {
                       type="button"
                       onClick={handleSendCode}
                       disabled={!canSendCode || loading}
-                      className={`mt-6 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      className={`flex-shrink-0 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                         canSendCode && !loading
                           ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -607,7 +607,7 @@ export function LoginPage(): JSX.Element {
                       type="button"
                       onClick={handleSendCode}
                       disabled={!canSendCode || loading}
-                      className={`mt-6 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      className={`flex-shrink-0 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                         canSendCode && !loading
                           ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'

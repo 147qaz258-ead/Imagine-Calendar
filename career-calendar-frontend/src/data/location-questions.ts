@@ -347,13 +347,7 @@ export function getLocationQuestions(location: string): readonly CognitiveQuesti
         return LOCATION_SPECIFIC_QUESTIONS.get(cityName)!
       }
     }
-    // 其他省份：从城市名匹配（去掉"市"后缀）
-    // 例如："广东省·广州市" -> 提取 "广州" 来匹配
-    const cityName = city?.replace(/市$/, '')
-    if (cityName && LOCATION_SPECIFIC_QUESTIONS.has(cityName)) {
-      return LOCATION_SPECIFIC_QUESTIONS.get(cityName)!
-    }
-    // 兼容：也从省份名匹配（某些省份可能有通用问题）
+    // 其他省份：从省份名匹配（去掉"省"后缀）
     const provinceName = province.replace(/省$|自治区$|壮族$|回族$|维吾尔$|特别行政区$/g, '')
     if (LOCATION_SPECIFIC_QUESTIONS.has(provinceName)) {
       return LOCATION_SPECIFIC_QUESTIONS.get(provinceName)!
