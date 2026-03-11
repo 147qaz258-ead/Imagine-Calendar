@@ -325,9 +325,42 @@ export const LOCATION_SPECIFIC_QUESTIONS: ReadonlyMap<string, readonly Cognitive
 
 /**
  * 获取城市特定问题
+ * 支持多种格式匹配：
+ * - "北京" - 直接城市名
+ * - "北京市" - 省份名（直辖市）
+ * - "北京市·东城区" - 省份·城市 格式
  */
 export function getLocationQuestions(location: string): readonly CognitiveQuestion[] {
-  return LOCATION_SPECIFIC_QUESTIONS.get(location) ?? []
+  // 直接匹配
+  if (LOCATION_SPECIFIC_QUESTIONS.has(location)) {
+    return LOCATION_SPECIFIC_QUESTIONS.get(location)!
+  }
+
+  // 从 "省份·城市" 格式中提取城市名
+  if (location.includes('·')) {
+    const [province, city] = location.split('·')
+    // 直辖市：北京市、上海市、天津市、重庆市
+    const municipalityMatch = province.match(/^(北京|上海|天津|重庆)市?$/)
+    if (municipalityMatch) {
+      const cityName = municipalityMatch[1]
+      if (LOCATION_SPECIFIC_QUESTIONS.has(cityName)) {
+        return LOCATION_SPECIFIC_QUESTIONS.get(cityName)!
+      }
+    }
+    // 其他省份：从省份名匹配（去掉"省"后缀）
+    const provinceName = province.replace(/省$|自治区$|壮族$|回族$|维吾尔$|特别行政区$/g, '')
+    if (LOCATION_SPECIFIC_QUESTIONS.has(provinceName)) {
+      return LOCATION_SPECIFIC_QUESTIONS.get(provinceName)!
+    }
+  }
+
+  // 去掉"市"后缀匹配
+  const cityName = location.replace(/市$/, '')
+  if (LOCATION_SPECIFIC_QUESTIONS.has(cityName)) {
+    return LOCATION_SPECIFIC_QUESTIONS.get(cityName)!
+  }
+
+  return []
 }
 
 /**

@@ -1,6 +1,7 @@
 /**
  * 认知边界评估组件
  * 独立的评估入口，根据用户偏好动态加载问题
+ * 支持级联选择：先选子分类，再回答问题
  */
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -24,6 +25,20 @@ interface CognitiveBoundaryAssessmentProps {
   showBackButton?: boolean
 }
 
+// 子分类选项配置
+const SUB_CATEGORY_OPTIONS: Record<string, { label: string; description: string }[]> = {
+  selfPositioning: [
+    { label: '商人', description: '注重商业运作、风险管理和机会抓取' },
+    { label: '创业者', description: '创造新企业或产品，承担从零开始的挑战' },
+    { label: '职业经理人', description: '决策、激励团队并应对企业运营挑战' },
+  ],
+  developmentDirection: [
+    { label: '公共部门', description: '政府或非政府组织，推动社会和公共政策改善' },
+    { label: '私营部门', description: '直接参与市场竞争和商业运营' },
+    { label: '公私合营部门', description: '混合所有制企业，两种工作文化融合' },
+  ],
+}
+
 export const CognitiveBoundaryAssessment: React.FC<CognitiveBoundaryAssessmentProps> = ({
   onComplete,
   showBackButton = true,
@@ -40,6 +55,9 @@ export const CognitiveBoundaryAssessment: React.FC<CognitiveBoundaryAssessmentPr
 
   // 当前选中的维度
   const [activeDimensionIndex, setActiveDimensionIndex] = useState(0)
+
+  // 当前选中的子分类（按维度存储）
+  const [selectedSubCategories, setSelectedSubCategories] = useState<Record<string, string>>({})
 
   // 如果已登录但没有用户数据，先获取当前用户
   useEffect(() => {
@@ -92,18 +110,53 @@ export const CognitiveBoundaryAssessment: React.FC<CognitiveBoundaryAssessmentPr
     return map
   }, [dynamicQuestions])
 
+  // 获取维度的子分类列表
+  const getSubCategoriesForDimension = useCallback((dimensionKey: string): string[] => {
+    const questions = questionsByDimension.get(dimensionKey) || []
+    const subCategories = new Set<string>()
+    questions.forEach(q => {
+      if (q.subCategory) {
+        subCategories.add(q.subCategory)
+      }
+    })
+    return Array.from(subCategories)
+  }, [questionsByDimension])
+
+  // 获取当前维度当前子分类的问题
+  const getFilteredQuestions = useCallback((dimensionKey: string): readonly CognitiveQuestion[] => {
+    const allQuestions = questionsByDimension.get(dimensionKey) || []
+    const subCategories = getSubCategoriesForDimension(dimensionKey)
+
+    // 如果该维度有子分类选项
+    if (subCategories.length > 0) {
+      const selectedSubCategory = selectedSubCategories[dimensionKey]
+      if (selectedSubCategory) {
+        return allQuestions.filter(q => q.subCategory === selectedSubCategory)
+      }
+      // 如果没选子分类，返回空（让用户先选）
+      return []
+    }
+
+    return allQuestions
+  }, [questionsByDimension, getSubCategoriesForDimension, selectedSubCategories])
+
   // 维度列表
-  const dimensions = useMemo((): ReadonlyArray<{ key: string; name: string }> => {
+  const dimensions = useMemo((): ReadonlyArray<{ key: string; name: string; hasSubCategories: boolean }> => {
     const seen = new Set<string>()
-    const result: Array<{ key: string; name: string }> = []
+    const result: Array<{ key: string; name: string; hasSubCategories: boolean }> = []
     dynamicQuestions.forEach((q) => {
       if (!seen.has(q.dimensionKey)) {
         seen.add(q.dimensionKey)
-        result.push({ key: q.dimensionKey, name: q.dimensionName })
+        const subCategories = getSubCategoriesForDimension(q.dimensionKey)
+        result.push({
+          key: q.dimensionKey,
+          name: q.dimensionName,
+          hasSubCategories: subCategories.length > 1,
+        })
       }
     })
     return result
-  }, [dynamicQuestions])
+  }, [dynamicQuestions, getSubCategoriesForDimension])
 
   // 问题统计
   const questionStats = useMemo(() => {
@@ -116,6 +169,14 @@ export const CognitiveBoundaryAssessment: React.FC<CognitiveBoundaryAssessmentPr
     setAssessments((prev) => ({
       ...prev,
       [questionId]: level,
+    }))
+  }, [])
+
+  // 处理子分类选择
+  const handleSubCategorySelect = useCallback((dimensionKey: string, subCategory: string) => {
+    setSelectedSubCategories(prev => ({
+      ...prev,
+      [dimensionKey]: subCategory,
     }))
   }, [])
 
@@ -162,7 +223,8 @@ export const CognitiveBoundaryAssessment: React.FC<CognitiveBoundaryAssessmentPr
 
   // 当前维度
   const activeDimension = dimensions[activeDimensionIndex]
-  const activeQuestions = activeDimension ? questionsByDimension.get(activeDimension.key) || [] : []
+  const activeQuestions: readonly CognitiveQuestion[] = activeDimension ? getFilteredQuestions(activeDimension.key) : []
+  const activeSubCategories = activeDimension ? getSubCategoriesForDimension(activeDimension.key) : []
 
   const progress = calculateProgress()
 
@@ -281,53 +343,101 @@ export const CognitiveBoundaryAssessment: React.FC<CognitiveBoundaryAssessmentPr
       </div>
 
       {/* 当前维度评估 */}
-      {activeDimension && activeQuestions.length > 0 && (
+      {activeDimension && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-4 bg-gray-50 border-b border-gray-200">
             <h3 className="font-medium text-gray-900">{activeDimension.name}</h3>
             <p className="text-sm text-gray-500 mt-1">
-              {activeQuestions.length} 个问题
+              {activeQuestions.length > 0
+                ? `${activeQuestions.length} 个问题`
+                : '请先选择一个选项'}
             </p>
           </div>
-          <div className="p-4 space-y-6">
-            {activeQuestions.map((question) => (
-              <div key={question.id} className="space-y-2">
-                {/* 子分类标签 */}
-                {question.subCategory && (
-                  <span className="inline-block px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
-                    {question.subCategory}
-                  </span>
-                )}
-                {/* 问题文本 */}
-                <p className="text-gray-800">{question.question}</p>
-                {/* 滑动条 */}
-                <div className="mt-3">
-                  <input
-                    type="range"
-                    min={1}
-                    max={5}
-                    value={assessments[question.id] || 3}
-                    onChange={(e) =>
-                      handleAssessmentChange(question.id, parseInt(e.target.value) as QuestionLevel)
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <span
-                        key={level}
-                        className={`${
-                          assessments[question.id] === level ? 'text-blue-600 font-medium' : ''
-                        }`}
-                      >
-                        {ASSESSMENT_LEVELS[level as QuestionLevel].label}
-                      </span>
-                    ))}
+
+          {/* 子分类选择器 */}
+          {activeSubCategories.length > 1 && (
+            <div className="p-4 border-b border-gray-200 bg-blue-50">
+              <p className="text-sm font-medium text-gray-700 mb-3">
+                请选择你的定位：
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {activeSubCategories.map((subCategory) => {
+                  const isSelected = selectedSubCategories[activeDimension.key] === subCategory
+                  const optionInfo = SUB_CATEGORY_OPTIONS[activeDimension.key]?.find(
+                    o => o.label === subCategory
+                  )
+
+                  return (
+                    <button
+                      key={subCategory}
+                      onClick={() => handleSubCategorySelect(activeDimension.key, subCategory)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                      }`}
+                    >
+                      <div>{subCategory}</div>
+                      {optionInfo && !isSelected && (
+                        <div className="text-xs text-gray-500 mt-0.5">{optionInfo.description}</div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 问题列表 */}
+          {activeQuestions.length > 0 && (
+            <div className="p-4 space-y-6">
+              {activeQuestions.map((question) => (
+                <div key={question.id} className="space-y-2">
+                  {/* 问题文本 */}
+                  <p className="text-gray-800">{question.question}</p>
+                  {/* 滑动条 */}
+                  <div className="mt-3">
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      value={assessments[question.id] || 3}
+                      onChange={(e) =>
+                        handleAssessmentChange(question.id, parseInt(e.target.value) as QuestionLevel)
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <span
+                          key={level}
+                          className={`${
+                            assessments[question.id] === level ? 'text-blue-600 font-medium' : ''
+                          }`}
+                        >
+                          {ASSESSMENT_LEVELS[level as QuestionLevel].label}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {/* 未选择子分类提示 */}
+          {activeSubCategories.length > 1 && activeQuestions.length === 0 && (
+            <div className="p-6 text-center text-gray-500">
+              <p>请先在上方选择一个选项，然后回答相关问题</p>
+            </div>
+          )}
+
+          {/* 无问题提示 */}
+          {activeSubCategories.length <= 1 && activeQuestions.length === 0 && (
+            <div className="p-6 text-center text-gray-500">
+              <p>该维度暂无问题</p>
+            </div>
+          )}
         </div>
       )}
 
