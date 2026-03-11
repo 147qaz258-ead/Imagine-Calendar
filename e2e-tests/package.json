@@ -1,0 +1,16 @@
+{
+  "name": "career-calendar-e2e-tests",
+  "version": "1.0.0",
+  "description": "端到端测试 - 畅选日历核心流程",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:prod": "cross-env BASE_URL=https://career-calendar.vercel.app playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "cross-env": "^7.0.3"
+  }
+}

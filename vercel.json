@@ -1,8 +1,0 @@
-{
-  "buildCommand": "pnpm --filter career-calendar-web build",
-  "outputDirectory": "web/dist",
-  "installCommand": "pnpm install",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
