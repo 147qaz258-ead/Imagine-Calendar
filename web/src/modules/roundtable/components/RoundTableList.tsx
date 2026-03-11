@@ -85,7 +85,8 @@ export function RoundTableList({ onViewDetail }: RoundTableListProps) {
       {/* 头部 */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-900">我的群组</h2>
-        <button
+        {/* 暂时注释掉报名按钮 */}
+        {/* <button
           onClick={() => setShowApplyForm(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
@@ -93,7 +94,7 @@ export function RoundTableList({ onViewDetail }: RoundTableListProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           报名群组
-        </button>
+        </button> */}
       </div>
 
       {/* 错误提示 */}
@@ -148,12 +149,13 @@ export function RoundTableList({ onViewDetail }: RoundTableListProps) {
               ? '您还没有参与任何群组讨论'
               : `暂无${RoundTableStatusLabels[activeTab as RoundTableStatus] || ''}的群组`}
           </p>
-          <button
+          {/* 暂时注释掉报名按钮 */}
+          {/* <button
             onClick={() => setShowApplyForm(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             立即报名
-          </button>
+          </button> */}
         </div>
       )}
 

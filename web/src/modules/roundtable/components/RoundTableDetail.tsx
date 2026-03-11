@@ -130,7 +130,8 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
             </span>
             <h1 className="text-2xl font-bold text-gray-900">{currentRoundTable.topic}</h1>
           </div>
-          {(currentRoundTable.status === RoundTableStatus.MATCHING ||
+          {/* 暂时注释掉取消报名按钮 */}
+          {/* {(currentRoundTable.status === RoundTableStatus.MATCHING ||
             currentRoundTable.status === RoundTableStatus.READY) && (
             <button
               onClick={handleLeave}
@@ -138,7 +139,7 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
             >
               取消报名
             </button>
-          )}
+          )} */}
         </div>
 
         {/* 时间信息 */}
@@ -162,8 +163,8 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
           <p className="text-gray-600 mb-4">{currentRoundTable.description}</p>
         )}
 
-        {/* 操作按钮 */}
-        {(currentRoundTable.status === RoundTableStatus.READY ||
+        {/* 暂时注释掉操作按钮 */}
+        {/* {(currentRoundTable.status === RoundTableStatus.READY ||
           currentRoundTable.status === RoundTableStatus.IN_PROGRESS) && (
           <button
             onClick={handleJoin}
@@ -171,7 +172,7 @@ export function RoundTableDetail({ id, onBack }: RoundTableDetailProps) {
           >
             {currentRoundTable.status === RoundTableStatus.IN_PROGRESS ? '加入讨论' : '进入群组'}
           </button>
-        )}
+        )} */}
       </div>
 
       {/* 匹配中状态 */}

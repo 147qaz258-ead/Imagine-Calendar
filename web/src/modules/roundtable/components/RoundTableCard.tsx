@@ -92,8 +92,8 @@ export function RoundTableCard({
           </div>
         )}
 
-        {/* 操作按钮 */}
-        {showActions && (
+        {/* 操作按钮 - 暂时注释掉报名功能 */}
+        {/* {showActions && (
           <div className="mt-4 flex gap-2">
             {roundTable.status === RoundTableStatus.MATCHING && !isFull && onJoin && (
               <button
@@ -129,7 +129,7 @@ export function RoundTableCard({
               </button>
             )}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   )
