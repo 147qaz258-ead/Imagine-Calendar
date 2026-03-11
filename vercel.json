@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://json.schemastore.org/draft-07/schema#",
+  "title": "Vercel Project Configuration",
+  "description": "Configure deployment settings for the Career Calendar project",
+  "type": "object",
+  "properties": {
+    "rootDirectory": {
+      "type": "string",
+      "description": "Root directory for the frontend app",
+      "default": "career-calendar-frontend"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Framework preset",
+      "default": "vite"
+    },
+    "buildCommand": {
+      "type": "string",
+      "description": "Build command",
+      "default": "npm run build"
+    },
+    "outputDirectory": {
+      "type": "string",
+      "description": "Output directory",
+      "default": "dist"
+    },
+    "installCommand": {
+      "type": "string",
+      "description": "Install command",
+      "default": "npm install"
+    },
+    "rewrites": {
+      "type": "array",
+      "description": "URL rewrite rules",
+      "default": [
+        { "source": "/(.*)", "destination": "/index.html" }
+      ],
+      "items": []
+    }
+  },
+  "required": []
+}
