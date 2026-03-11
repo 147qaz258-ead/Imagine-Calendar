@@ -221,3 +221,34 @@ export const FILTER_PRESETS: FilterPreset[] = [
     },
   },
 ]
+
+/**
+ * 城市选项
+ */
+export interface CityOption {
+  name: string
+}
+
+/**
+ * 省份选项
+ */
+export interface ProvinceOption {
+  name: string
+  cities: CityOption[]
+}
+
+/**
+ * 省市选择值
+ */
+export interface ProvinceCityValue {
+  province: string      // 省份名称
+  city: string          // 城市名称
+}
+
+/**
+ * 省市联动响应
+ */
+export interface ProvinceCityResponse {
+  success: boolean
+  data: ProvinceOption[]
+}

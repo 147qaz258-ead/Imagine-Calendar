@@ -10,6 +10,21 @@ export interface FilterOption {
 }
 
 /**
+ * 城市选项接口
+ */
+export interface CityOption {
+  name: string
+}
+
+/**
+ * 省份选项接口
+ */
+export interface ProvinceOption {
+  name: string
+  cities: CityOption[]
+}
+
+/**
  * 筛选选项响应接口
  */
 export interface FilterOptionsResponse {
@@ -32,11 +47,52 @@ export interface FilterOptionsResponse {
 }
 
 /**
+ * 省市联动响应接口
+ */
+export interface ProvinceCityResponse {
+  success: boolean
+  data: ProvinceOption[]
+}
+
+/**
  * 筛选服务
  * 提供各维度的筛选选项数据
  */
 @Injectable()
 export class FilterService {
+  // 缓存省市数据
+  private provincesCache: ProvinceOption[] | null = null
+
+  /**
+   * 获取省市联动数据
+   */
+  getLocationsWithProvinces(): ProvinceCityResponse {
+    if (this.provincesCache) {
+      return { success: true, data: this.provincesCache }
+    }
+
+    try {
+      // 动态导入 JSON 数据
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const pcData = require('../../data/provinces-cities.json')
+
+      const provinces: ProvinceOption[] = Object.entries(pcData).map(
+        ([provinceName, cities]) => ({
+          name: provinceName,
+          cities: (cities as string[]).map((cityName) => ({
+            name: cityName,
+          })),
+        })
+      )
+
+      this.provincesCache = provinces
+      return { success: true, data: provinces }
+    } catch (error) {
+      console.error('加载省市数据失败:', error)
+      return { success: false, data: [] }
+    }
+  }
+
   /**
    * 获取所有筛选选项
    */

@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
-import { FilterService, FilterOptionsResponse } from './filter.service'
+import { FilterService, FilterOptionsResponse, ProvinceCityResponse } from './filter.service'
 import { Public } from '../../common/decorators/public.decorator'
 
 /**
@@ -40,5 +40,31 @@ export class FilterController {
   })
   getFilterOptions(): FilterOptionsResponse {
     return this.filterService.getFilterOptions()
+  }
+
+  /**
+   * 获取省市联动数据
+   * GET /api/filters/locations
+   */
+  @Public()
+  @Get('locations')
+  @ApiOperation({ summary: '获取省市联动数据' })
+  @ApiResponse({
+    status: 200,
+    description: '返回省市两级联动数据',
+    schema: {
+      example: {
+        success: true,
+        data: [
+          {
+            name: '北京市',
+            cities: [{ name: '东城区' }, { name: '西城区' }],
+          },
+        ],
+      },
+    },
+  })
+  getLocationsWithProvinces(): ProvinceCityResponse {
+    return this.filterService.getLocationsWithProvinces()
   }
 }

@@ -8,11 +8,12 @@ import { updatePreferences } from '../store/profileSlice'
 import { setOnboardingStep } from '@/modules/auth/store/authSlice'
 import { autoMatchRoundTable } from '@/modules/roundtable/store/roundTableSlice'
 import { filterApi } from '@/modules/filter/services/filterApi'
+import { ProvinceCitySelector } from '@/modules/filter/components/ProvinceCitySelector'
+import type { ProvinceCityValue } from '@/modules/filter/types'
 import type { UserPreferences } from '../types'
 
-// 偏好维度配置
+// 偏好维度配置（locations 单独处理）
 const PREFERENCE_DIMENSIONS = [
-  { key: 'locations', label: '地点偏好' },
   { key: 'selfPositioning', label: '自我定位' },
   { key: 'developmentDirection', label: '发展方向' },
   { key: 'industries', label: '行业偏好' },
@@ -33,6 +34,20 @@ interface FilterOption {
   value: string
   label: string
   description?: string
+}
+
+// 辅助函数：字符串数组转换为 ProvinceCityValue 数组
+const stringsToProvinceCities = (strings: string[] | undefined): ProvinceCityValue[] => {
+  if (!strings || strings.length === 0) return []
+  return strings.map((s) => {
+    const [province, city] = s.split('·')
+    return { province: province || s, city: city || '' }
+  }).filter((v) => v.province && v.city)
+}
+
+// 辅助函数：ProvinceCityValue 数组转换为字符串数组
+const provinceCitiesToStrings = (values: ProvinceCityValue[]): string[] => {
+  return values.map((v) => `${v.province}·${v.city}`)
 }
 
 export const PreferencesForm: React.FC = () => {
@@ -144,7 +159,26 @@ export const PreferencesForm: React.FC = () => {
         选择符合你期望的选项，系统会根据你的偏好推荐匹配的招聘事件。
       </p>
 
-      {/* 维度列表 */}
+      {/* 地点偏好（特殊处理 - 使用省市联动选择器） */}
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-2">地点偏好</h3>
+        <p className="text-xs text-gray-500 mb-2">
+          选择你期望工作的城市（最多5个）
+        </p>
+        <ProvinceCitySelector
+          value={stringsToProvinceCities(preferences.locations)}
+          onChange={(locations: ProvinceCityValue[]) =>
+            setPreferences((prev) => ({
+              ...prev,
+              locations: provinceCitiesToStrings(locations),
+            }))
+          }
+          max={5}
+          disabled={updateLoading}
+        />
+      </div>
+
+      {/* 其他维度列表 */}
       <div className="space-y-6">
         {PREFERENCE_DIMENSIONS.map((dimension) => (
           <div key={dimension.key}>
